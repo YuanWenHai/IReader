@@ -1,3 +1,3 @@
 # IReader
-My First Application,haha
+My first application,haha
 
