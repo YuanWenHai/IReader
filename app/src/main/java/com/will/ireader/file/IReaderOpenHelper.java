@@ -29,6 +29,7 @@ public class IReaderOpenHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db){
         db.execSQL(CREATE_BOOKLIST);
         db.execSQL(CREATE_DIRLIST);
+        db.execSQL(CREATE_BOOKMARK);
     }
     @Override
     public void onUpgrade(SQLiteDatabase db,int oldVersion,int newVersion){

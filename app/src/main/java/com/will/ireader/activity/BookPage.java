@@ -15,7 +15,9 @@ import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.GridView;
+import android.widget.TextView;
 
 import com.will.ireader.Page.PageFactory;
 import com.will.ireader.R;
@@ -26,7 +28,7 @@ import com.will.ireader.file.IReaderDB;
 /**
  * Created by Will on 2016/2/2.
  */
-public class BookPage extends Activity implements AdapterView.OnItemClickListener{
+public class BookPage extends Activity implements AdapterView.OnItemClickListener,View.OnClickListener{
     private PageFactory pageFactory;
     private Bitmap bitmap;
     private Canvas canvas;
@@ -41,6 +43,9 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
     private IReaderDB iReaderDB  = IReaderDB.getInstance(this);
     private AlertDialog menuDialog;
     private View menuView;
+    private Button increaseFont;
+    private Button decreaseFont;
+    private TextView fontSizeDescription;
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
@@ -131,6 +136,26 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
             menuDialog.show();
         }
         return false;
+    }
+    private void initializeDialogs(){
+        AlertDialog fontChangeDialog = new AlertDialog.Builder(this).create();
+        View changeFontView = View.inflate(this,R.layout.change_font_view,null);
+        increaseFont = (Button) changeFontView.findViewById(R.id.increase_font);
+        decreaseFont = (Button) changeFontView.findViewById(R.id.decrease_font);
+        fontSizeDescription = (TextView) changeFontView.findViewById(R.id.font_size);
+        fontChangeDialog.setView(changeFontView);
+
+    }
+    @Override
+    public void onClick(View v){
+        switch(v.getId()){
+            case R.id.increase_font:
+                //增大字体并刷新界面;
+                break;
+            case R.id.decrease_font:
+                //缩小字体并刷新界面,还应改变textView中显示的数值;
+                break;
+        }
     }
     }
 

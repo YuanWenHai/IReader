@@ -39,10 +39,11 @@ public class PageFactory {
     private Bitmap pageBackground;
     private int position1 = 0;
     private int position2 = 0;
-    private int bufferLength = 1024*10;
+    private int bufferLength = 1024*2000;
     private String keyWord = "章";
     private IReaderDB iReaderDB ;
     private String bookName;
+    public int chapterNumber = 0;
     public PageFactory(int height,int width,int size){
         displayHeight = height;
         displayWidth = width;
@@ -292,12 +293,14 @@ private Vector<String> pageDown(){
         return tempByte;
     }
     public void getChapter(){
-        int chapterNumber = 0;
         String strTemp = "";
-        Pattern pattern = Pattern.compile("^[0-9一二三四五六七八九十百千万 ]+$");
-        while(getBuffer() != null){
-        byte[] byteTemp;
-        byteTemp = getBuffer();
+        Pattern pattern = Pattern.compile("^[0-9零一二三四五六七八九十百千万 ]+$");
+        byte[] byteTemp = new byte[mapperFileLength];
+        for(int i = 0;i<mapperFileLength;i++){
+            byteTemp[i] = mappedFile.get(i);
+        }
+       // while(getBuffer().length > 0){
+        //byteTemp = getBuffer();
         position1 = position2;
         try{
             strTemp = new String(byteTemp,"GBK");
@@ -306,7 +309,8 @@ private Vector<String> pageDown(){
         }
             while(strTemp.contains("第")){
                 int wordPosition = strTemp.indexOf("第");
-                if(strTemp.contains(keyWord) && wordPosition < strTemp.indexOf(keyWord)){
+                if(strTemp.contains(keyWord)){
+                if(wordPosition < strTemp.indexOf(keyWord)){
                     int keyWordPosition = strTemp.indexOf(keyWord);
                     String temp = strTemp.substring(strTemp.indexOf("第")+1,keyWordPosition);
                     Matcher matcher = pattern.matcher(temp);
@@ -318,10 +322,15 @@ private Vector<String> pageDown(){
                     }else{
                         strTemp = strTemp.substring(wordPosition+1);
                 }
+                }else{
+                    strTemp = strTemp.substring(wordPosition);
+                }
+                }else{
+                    strTemp = strTemp.substring(wordPosition+1);
                 }
             }
 
-    }
+    //}
     }
     public void setKeyWord(String keyWord){
         this.keyWord = keyWord;
