@@ -112,4 +112,21 @@ public class IReaderDB {
 
         return path;
     }
+    public void saveBookChapter(String bookName,String chapterName,int chapterNumber,int chapterPosition){
+        ContentValues values = new ContentValues();
+        values.put("book_name",bookName);
+        values.put("chapter_number",chapterNumber);
+        values.put("chapter_position",chapterPosition);
+        values.put("chapter_name",chapterName);
+        db.insert("Bookmark",null,values);
+    }
+    public String[] getBookChapter(String bookName){
+        String[] chapters;
+        Cursor cursor = db.query("Bookmark",null,"book_name=?",new String[]{bookName},null,null,null);
+        if(cursor.moveToFirst()){
+            do{
+
+            }
+        }
+    }
 }

@@ -16,6 +16,12 @@ public class IReaderOpenHelper extends SQLiteOpenHelper {
             "id integer primary key autoincrement," +
             "dir_name text," +
             "dir_path text)";
+    public static final String CREATE_BOOKMARK = "create table Bookmark (" +
+            "id integer primary key autoincrement," +
+            "book_name text," +
+            "chapter_number integer," +
+            "chapter_position integer," +
+            "chapter_name)";
     public IReaderOpenHelper(Context context,String name,SQLiteDatabase.CursorFactory factory,int version){
         super(context,name,factory,version);
     }

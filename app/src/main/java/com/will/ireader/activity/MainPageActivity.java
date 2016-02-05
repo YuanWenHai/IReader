@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,8 +34,8 @@ public class MainPageActivity extends Activity {
     IReaderDB iReaderDB;
     ListView listView;
     Button add;
-    boolean isChecked;
     CheckBox checkBox;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -145,5 +144,6 @@ public class MainPageActivity extends Activity {
         MainPageAdapter adapter  = new MainPageAdapter(this);
         listView.setAdapter(adapter);
     }
+
 
 }

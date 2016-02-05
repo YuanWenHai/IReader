@@ -1,10 +1,13 @@
 package com.will.ireader.Page;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+
+import com.will.ireader.file.IReaderDB;
 
 import java.io.File;
 import java.io.RandomAccessFile;
@@ -13,6 +16,8 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.text.DecimalFormat;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by Will on 2016/2/2.
@@ -31,8 +36,13 @@ public class PageFactory {
     private MappedByteBuffer mappedFile;//映射到内存中的文件
     private RandomAccessFile randomFile;//关闭Random流时使用
     private Vector<String> content = new Vector<String>();
-    private boolean isPageDown = true;//转换翻页方向；
     private Bitmap pageBackground;
+    private int position1 = 0;
+    private int position2 = 0;
+    private int bufferLength = 1024*10;
+    private String keyWord = "章";
+    private IReaderDB iReaderDB ;
+    private String bookName;
     public PageFactory(int height,int width,int size){
         displayHeight = height;
         displayWidth = width;
@@ -43,6 +53,11 @@ public class PageFactory {
         myPaint.setTextSize(fontSize);
         myPaint.setColor(Color.BLACK);
         lineNumber = pageHeight/(fontSize+lineSpace);
+    }
+    public PageFactory(String name ,String path,Context context){
+        openBook(path,new int[]{0,0});
+        iReaderDB = IReaderDB.getInstance(context);
+        bookName = name;
     }
     public void openBook(String path,int[] position){
         File file = new File(path);
@@ -256,5 +271,61 @@ private Vector<String> pageDown(){
     public void setPageBackground(Bitmap bitmap){
         pageBackground = bitmap;
     }
+    //读取10kb文件
+    private byte[] getBuffer(){
+        byte[] tempByte;
+        if(position2+bufferLength < mapperFileLength ){
+        while(mappedFile.get(position2+bufferLength) != 0x0a ){
+            position2++;
+        }
+        position2 += bufferLength;
+        }else{
+            position2 += (mapperFileLength-position2);
+        }
+        int size = position2 - position1;
+        tempByte = new byte[size];
+        if(position2<=mapperFileLength){
+        for(int i = 0;i<size;i++){
+            tempByte[i] = mappedFile.get(position1+i);
+        }
+        }
+        return tempByte;
+    }
+    public void getChapter(){
+        int chapterNumber = 0;
+        String strTemp = "";
+        Pattern pattern = Pattern.compile("^[0-9一二三四五六七八九十百千万 ]+$");
+        while(getBuffer() != null){
+        byte[] byteTemp;
+        byteTemp = getBuffer();
+        position1 = position2;
+        try{
+            strTemp = new String(byteTemp,"GBK");
+        }catch(UnsupportedEncodingException e){
+            e.printStackTrace();
+        }
+            while(strTemp.contains("第")){
+                int wordPosition = strTemp.indexOf("第");
+                if(strTemp.contains(keyWord) && wordPosition < strTemp.indexOf(keyWord)){
+                    int keyWordPosition = strTemp.indexOf(keyWord);
+                    String temp = strTemp.substring(strTemp.indexOf("第")+1,keyWordPosition);
+                    Matcher matcher = pattern.matcher(temp);
+                    if(matcher.matches()){
+                        chapterNumber++;
+                        String chapterName = strTemp.substring(wordPosition,strTemp.indexOf('\n',wordPosition));
+                        iReaderDB.saveBookChapter(bookName,chapterName,chapterNumber,wordPosition+position1);
+                        strTemp = strTemp.substring(keyWordPosition);
+                    }else{
+                        strTemp = strTemp.substring(wordPosition+1);
+                }
+                }
+            }
+
+    }
+    }
+    public void setKeyWord(String keyWord){
+        this.keyWord = keyWord;
+    }
+
 
 }

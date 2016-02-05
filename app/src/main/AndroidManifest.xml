@@ -24,6 +24,7 @@
         <activity android:name=".file.FileSelector"></activity>
         <activity android:name=".activity.BookPage"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen"></activity>
+        <activity android:name=".activity.BookmarkPage"></activity>
     </application>
 
 </manifest>
