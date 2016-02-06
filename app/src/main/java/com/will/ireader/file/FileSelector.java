@@ -132,6 +132,8 @@ public class FileSelector extends Activity {
                                             recursion(files[i].listFiles());
                                         }else if (files[i].getName().toUpperCase().contains(".TXT")){
                                             iReaderDB.saveBook(files[i].getName(),files[i].getPath());
+                                            Intent intent = new Intent (FileSelector.this,MainPageActivity.class);
+                                            startActivity(intent);
                                         }
                                     }
                                 }
@@ -140,8 +142,7 @@ public class FileSelector extends Activity {
 
 
                 }).start();
-                Intent intent = new Intent (FileSelector.this,MainPageActivity.class);
-                startActivity(intent);
+
             }
         });
         //取消键

@@ -28,7 +28,7 @@ import com.will.ireader.file.IReaderDB;
 /**
  * Created by Will on 2016/2/2.
  */
-public class BookPage extends Activity implements AdapterView.OnItemClickListener,View.OnClickListener{
+public class BookPage extends Activity implements AdapterView.OnItemClickListener {
     private PageFactory pageFactory;
     private Bitmap bitmap;
     private Canvas canvas;
@@ -46,6 +46,16 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
     private Button increaseFont;
     private Button decreaseFont;
     private TextView fontSizeDescription;
+    private AlertDialog fontChangeDialog;
+    private final int DIRECTORY = 0;//章节目录
+    private final int PROGRESS = 1;//进度跳转
+    private final int FONT_SIZE = 2;//字体大小
+    private final int BACKGROUND = 3;//设置背景
+    private final int NIGHT_MODE = 4;//夜间模式
+    private final int LINE_SPACEING = 5;//调整行距
+    private final int SEARCH = 6;//全文搜索
+    private final int RE_CODE = 7;//处理乱码\
+    private MyListener myListener = new MyListener();
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
@@ -57,7 +67,7 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
         bitmap = Bitmap.createBitmap(dm.widthPixels,dm.heightPixels, Bitmap.Config.ARGB_8888);
         canvas = new Canvas(bitmap);
         sp = getSharedPreferences("config", MODE_PRIVATE);
-        fontSize = sp.getInt("font_size",30);
+        fontSize = sp.getInt("font_size",45);
         pageFactory = new PageFactory(dm.heightPixels,dm.widthPixels,fontSize);
         try{
             bookName= this.getIntent().getStringExtra("name");
@@ -101,16 +111,26 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
         menuDialog = new AlertDialog.Builder(this).create();
         menuDialog.setView(menuView);
         gridView.setOnItemClickListener(this);
+        initializeDialogs();
 
     }
     @Override
     public void onItemClick(AdapterView<?>parent,View view,int position,long id){
         switch(position){
-            case 0:
+            case DIRECTORY:
                 Intent intent  = new Intent(BookPage.this,BookmarkPage.class);
                 intent.putExtra("name",bookName);
                 intent.putExtra("path",bookPath);
                 startActivity(intent);
+                menuDialog.cancel();
+                finish();
+                break;
+            case FONT_SIZE:
+                fontChangeDialog.show();
+                menuDialog.cancel();
+                break;
+            case PROGRESS:
+
         }
 
     }
@@ -121,7 +141,7 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
         SharedPreferences.Editor editor = sp.edit();
         editor.putInt(bookName+"start",position[0]);
         editor.putInt(bookName+"end",position[1]);
-        editor.putInt("font_size",fontSize);
+        editor.putInt("font_size",pageFactory.getFontSize());
         editor.commit();
     }
     @Override
@@ -130,6 +150,7 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
         return super.onCreateOptionsMenu(menu);
     }
     public boolean onMenuOpened(int FeatureId,Menu menu){
+
         if(menuDialog == null){
             menuDialog = new AlertDialog.Builder(this).setView(menuView).show();
         }else{
@@ -138,24 +159,43 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
         return false;
     }
     private void initializeDialogs(){
-        AlertDialog fontChangeDialog = new AlertDialog.Builder(this).create();
+        //改变字体
+        fontChangeDialog = new AlertDialog.Builder(this).create();
         View changeFontView = View.inflate(this,R.layout.change_font_view,null);
         increaseFont = (Button) changeFontView.findViewById(R.id.increase_font);
         decreaseFont = (Button) changeFontView.findViewById(R.id.decrease_font);
         fontSizeDescription = (TextView) changeFontView.findViewById(R.id.font_size);
+        fontSizeDescription.setText("当前字号"+pageFactory.getFontSize());
         fontChangeDialog.setView(changeFontView);
-
+        increaseFont.setOnClickListener(myListener);
+        decreaseFont.setOnClickListener((myListener));
     }
+    class MyListener implements View.OnClickListener{
     @Override
     public void onClick(View v){
         switch(v.getId()){
             case R.id.increase_font:
-                //增大字体并刷新界面;
+                pageFactory.setFontSize(pageFactory.getFontSize()+2);
+                fontSizeDescription.setText("当前字号" + pageFactory.getFontSize());
+                pageFactory.printPage(canvas);
+                pageView.invalidate();
                 break;
             case R.id.decrease_font:
-                //缩小字体并刷新界面,还应改变textView中显示的数值;
+                pageFactory.setFontSize(pageFactory.getFontSize()-2);
+                fontSizeDescription.setText("当前字号" + pageFactory.getFontSize());
+                pageFactory.printPage(canvas);
+                pageView.invalidate();
                 break;
+            default:
+                Log.e("onClickDefault",v.getId()+"");
         }
+    }
+    }
+    @Override
+    public void onBackPressed(){
+        Intent intent = new Intent(this,MainPageActivity.class);
+        startActivity(intent);
+        finish();
     }
     }
 

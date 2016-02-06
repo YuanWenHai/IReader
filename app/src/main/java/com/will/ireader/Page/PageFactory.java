@@ -15,6 +15,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,7 +29,7 @@ public class PageFactory {
     private int lineNumber;//行数
     private int lineSpace = 3;//行距;
     private int mapperFileLength;//映射到内存中Book的字节数
-    private int fontSize = 30;
+    private int fontSize ;
     private int margin = 30;//文字显示距离屏幕实际尺寸的偏移量
     private Paint myPaint;
     private int begin;//当前阅读的字节数_开始
@@ -43,7 +44,9 @@ public class PageFactory {
     private String keyWord = "章";
     private IReaderDB iReaderDB ;
     private String bookName;
-    public int chapterNumber = 0;
+    private String wholeString = "";
+    private String code = "GBK";
+    public int index = 0;
     public PageFactory(int height,int width,int size){
         displayHeight = height;
         displayWidth = width;
@@ -56,9 +59,19 @@ public class PageFactory {
         lineNumber = pageHeight/(fontSize+lineSpace);
     }
     public PageFactory(String name ,String path,Context context){
-        openBook(path,new int[]{0,0});
+        openBook(path, new int[]{0, 0});
         iReaderDB = IReaderDB.getInstance(context);
         bookName = name;
+        byte[] bookByte = new byte[mapperFileLength];
+        for(int i = 0;i<mapperFileLength;i++){
+            bookByte[i] = mappedFile.get(i);
+        }
+        try{
+            wholeString = new String(bookByte,code);
+        }catch(UnsupportedEncodingException e){
+            e.printStackTrace();
+        }
+
     }
     public void openBook(String path,int[] position){
         File file = new File(path);
@@ -149,7 +162,7 @@ private Vector<String> pageDown(){
         byte[] byteTemp = readParagraphForward(end);
         end += byteTemp.length;
         try{
-            strParagraph = new String(byteTemp,"GB2312");
+            strParagraph = new String(byteTemp,code);
         }catch(Exception e){
             e.printStackTrace();
         }
@@ -165,7 +178,7 @@ private Vector<String> pageDown(){
         }
             if(strParagraph.length()>0){
                 try{
-                end -= (strParagraph).getBytes("GB2312").length;
+                end -= (strParagraph).getBytes(code).length;
             }catch(Exception e){
                     e.printStackTrace();
                 }
@@ -183,7 +196,7 @@ private Vector<String> pageDown(){
             byte[] byteTemp = readParagraphBack(begin);
             begin -= byteTemp.length;
             try{
-                strParagraph = new String(byteTemp,"GB2312");
+                strParagraph = new String(byteTemp,code);
             }catch(UnsupportedEncodingException e){
                 e.printStackTrace();
             }
@@ -197,7 +210,7 @@ private Vector<String> pageDown(){
             lines.addAll(0,parLines);
             while(lines.size()>lineNumber){
              try{
-                 begin += lines.get(0).getBytes("GB2312").length;
+                 begin += lines.get(0).getBytes(code).length;
                  lines.remove(0);
              }catch(UnsupportedEncodingException e){
                  e.printStackTrace();
@@ -269,6 +282,10 @@ private Vector<String> pageDown(){
         end = (int) position;
         nextPage();
     }
+    public void setPosition(int position){
+        end = position;
+        nextPage();
+    }
     public void setPageBackground(Bitmap bitmap){
         pageBackground = bitmap;
     }
@@ -293,40 +310,46 @@ private Vector<String> pageDown(){
         return tempByte;
     }
     public void getChapter(){
-        String strTemp = "";
+        int index = 0;
         Pattern pattern = Pattern.compile("^[0-9零一二三四五六七八九十百千万 ]+$");
-        byte[] byteTemp = new byte[mapperFileLength];
+        /*byte[] bookByte = new byte[mapperFileLength];
         for(int i = 0;i<mapperFileLength;i++){
-            byteTemp[i] = mappedFile.get(i);
+            bookByte[i] = mappedFile.get(i);
         }
        // while(getBuffer().length > 0){
         //byteTemp = getBuffer();
         position1 = position2;
         try{
-            strTemp = new String(byteTemp,"GBK");
+            bookString = new String(bookByte,code);
         }catch(UnsupportedEncodingException e){
             e.printStackTrace();
-        }
-            while(strTemp.contains("第")){
-                int wordPosition = strTemp.indexOf("第");
-                if(strTemp.contains(keyWord)){
-                if(wordPosition < strTemp.indexOf(keyWord)){
-                    int keyWordPosition = strTemp.indexOf(keyWord);
-                    String temp = strTemp.substring(strTemp.indexOf("第")+1,keyWordPosition);
+        }*/
+            String bookString = wholeString;
+            while(bookString.contains("第")){
+                //strTemp = strTemp.substring(strTemp.indexOf(第));
+                int wordPosition = bookString.indexOf("第");
+                if(bookString.contains(keyWord)){
+                if(wordPosition < bookString.indexOf(keyWord)){
+                    int keyWordPosition = bookString.indexOf(keyWord);
+                    String temp = bookString.substring(bookString.indexOf("第")+1,keyWordPosition);
                     Matcher matcher = pattern.matcher(temp);
                     if(matcher.matches()){
-                        chapterNumber++;
-                        String chapterName = strTemp.substring(wordPosition,strTemp.indexOf('\n',wordPosition));
-                        iReaderDB.saveBookChapter(bookName,chapterName,chapterNumber,wordPosition+position1);
-                        strTemp = strTemp.substring(keyWordPosition);
+                        String chapterName = bookString.substring(wordPosition,bookString.indexOf('\n',wordPosition));
+                        iReaderDB.saveBookChapter(bookName,chapterName,0,wordPosition+index);
+                        index += getByte(bookString.substring(1,keyWordPosition+1));
+                        bookString = bookString.substring(keyWordPosition+1);
                     }else{
-                        strTemp = strTemp.substring(wordPosition+1);
+                        index += getByte(bookString.substring(1,wordPosition+1));
+                        bookString = bookString.substring(wordPosition+1);
                 }
                 }else{
-                    strTemp = strTemp.substring(wordPosition);
+                    index += getByte(bookString.substring(1,wordPosition));
+                    bookString = bookString.substring(wordPosition);
+
                 }
                 }else{
-                    strTemp = strTemp.substring(wordPosition+1);
+                    index += getByte(bookString.substring(1,wordPosition+1));
+                    bookString = bookString.substring(wordPosition+1);
                 }
             }
 
@@ -334,6 +357,52 @@ private Vector<String> pageDown(){
     }
     public void setKeyWord(String keyWord){
         this.keyWord = keyWord;
+    }
+    private int getByte(String string){
+        byte[] bytes;
+        int num = 0;
+        try{
+
+            bytes = string.getBytes(code);
+            num = bytes.length;
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        return num;
+    }
+    public String[] getChapter2(){
+        Pattern pattern = Pattern.compile("^第[0-9零一二三四五六七八九十百千万 ]+"+keyWord+"$");
+        ArrayList<String> list = new ArrayList<String>();
+        byte[] bytes  = new byte[mapperFileLength];
+        String str = "";
+        for(int i = 0;i<mapperFileLength;i++) {
+            bytes[i] = mappedFile.get(i);
+        }
+            try{
+               str = new String(bytes,code);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            Matcher m = pattern.matcher(str);
+        while(m.find()){
+            list.add(m.group());
+            index++;
+        }
+        String[] strings = list.toArray(new String[list.size()]);
+        return strings;
+    }
+    public int getPositionFromChapter(String chapterName){
+        int position = wholeString.indexOf(chapterName);
+        String temp = wholeString.substring(0,position);
+        int pos = 0;
+
+        try{
+            byte[] bytes =temp.getBytes(code);
+            pos = bytes.length;
+        }catch (UnsupportedEncodingException u){
+            u.printStackTrace();
+        }
+        return pos;
     }
 
 

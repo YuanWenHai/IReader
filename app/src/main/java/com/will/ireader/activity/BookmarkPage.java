@@ -2,7 +2,10 @@ package com.will.ireader.activity;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
@@ -36,6 +39,7 @@ public class BookmarkPage extends Activity implements AdapterView.OnItemClickLis
     private String bookPath = "";
     private IReaderDB iReaderDB;
     private ListView list;
+    private SharedPreferences sp;
     ArrayAdapter<String> bookmarkAdapter;
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -44,6 +48,7 @@ public class BookmarkPage extends Activity implements AdapterView.OnItemClickLis
         setContentView(R.layout.bookmark_view);
         bookName = getIntent().getStringExtra("name");
         bookPath = getIntent().getStringExtra("path");
+        sp = getSharedPreferences("config", MODE_PRIVATE);
         factory = new PageFactory(bookName,bookPath,BookmarkPage.this);
         initializeList();
         list = (ListView) findViewById(R.id.bookmark_list_view);
@@ -61,6 +66,20 @@ public class BookmarkPage extends Activity implements AdapterView.OnItemClickLis
             @Override
         public void onClick(View v){
                 addDialog.show();
+            }
+        });
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                int pos = factory.getPositionFromChapter(chapters[position]);
+                SharedPreferences.Editor editor = sp.edit();
+                editor.putInt(bookName+"end",pos);
+                Log.e("positions number", pos + "");
+                editor.putInt(bookName + "start", pos);
+                editor.commit();
+                Intent intent  = new Intent(BookmarkPage.this,BookPage.class);
+                intent.putExtra("name", bookName);
+                startActivity(intent);
             }
         });
     }
@@ -107,10 +126,10 @@ public class BookmarkPage extends Activity implements AdapterView.OnItemClickLis
                 }).start();
                 break;
             case ADD_MODE_C:
-                iReaderDB.deleteBookmark(bookName);
                 factory.setKeyWord("回");
                 Toast.makeText(this,"正在加载，请稍等···",Toast.LENGTH_LONG).show();
                 addDialog.cancel();
+                iReaderDB.deleteBookmark(bookName);
                 new Thread(new Runnable(){
                     @Override
                     public void run(){
@@ -119,7 +138,7 @@ public class BookmarkPage extends Activity implements AdapterView.OnItemClickLis
                             @Override
                             public void run() {
                                 initializeList();
-                                bookmarkAdapter = new ArrayAdapter<String>(BookmarkPage.this,android.R.layout.simple_expandable_list_item_1,chapters);
+                                bookmarkAdapter = new ArrayAdapter<String>(BookmarkPage.this, android.R.layout.simple_expandable_list_item_1, chapters);
                                 list.setAdapter(bookmarkAdapter);
                             }
                         });
@@ -149,6 +168,14 @@ public class BookmarkPage extends Activity implements AdapterView.OnItemClickLis
             chapters[i] = (String)map.get("name");
             positions[i] = (Integer)map.get("position");
         }
+
+    }
+    @Override
+   public  void onBackPressed(){
+        Intent intent = new Intent(this,BookPage.class);
+        intent.putExtra("name", bookName);
+        startActivity(intent);
+        finish();
 
     }
 
