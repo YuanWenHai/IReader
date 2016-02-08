@@ -5,7 +5,6 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
@@ -72,13 +71,10 @@ public class BookmarkPage extends Activity implements AdapterView.OnItemClickLis
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 int pos = factory.getPositionFromChapter(chapters[position]);
-                SharedPreferences.Editor editor = sp.edit();
-                editor.putInt(bookName+"end",pos);
-                Log.e("positions number", pos + "");
-                editor.putInt(bookName + "start", pos);
-                editor.commit();
                 Intent intent  = new Intent(BookmarkPage.this,BookPage.class);
-                intent.putExtra("name", bookName);
+                Intent broadcast = new Intent("INVALIDATE_PAGEVIEW");
+                broadcast.putExtra("pos", pos);
+                sendBroadcast(broadcast);
                 startActivity(intent);
             }
         });

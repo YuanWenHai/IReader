@@ -15,7 +15,6 @@ import java.io.UnsupportedEncodingException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -46,7 +45,12 @@ public class PageFactory {
     private String bookName;
     private String wholeString = "";
     private String code = "GBK";
-    public int index = 0;
+    private boolean isNightMode = false;
+    private int keywordPos = 0;
+    private int nowPos;
+    private String searchKey = "";
+    public String test;
+    public int stringPosition;
     public PageFactory(int height,int width,int size){
         displayHeight = height;
         displayWidth = width;
@@ -57,6 +61,7 @@ public class PageFactory {
         myPaint.setTextSize(fontSize);
         myPaint.setColor(Color.BLACK);
         lineNumber = pageHeight/(fontSize+lineSpace);
+
     }
     public PageFactory(String name ,String path,Context context){
         openBook(path, new int[]{0, 0});
@@ -84,6 +89,15 @@ public class PageFactory {
         }
         begin = position[0];
         end = position[1];
+        byte[] bookByte = new byte[mapperFileLength];
+        for(int i = 0;i<mapperFileLength;i++){
+            bookByte[i] = mappedFile.get(i);
+        }
+        try{
+            wholeString = new String(bookByte,code);
+        }catch(UnsupportedEncodingException e){
+            e.printStackTrace();
+        }
     }
     //向后读取一个段落，返回二进制数组
     private byte[] readParagraphForward( int end){
@@ -227,11 +241,15 @@ private Vector<String> pageDown(){
         }
         if(content.size()>0){
             int y = margin;
-            if(pageBackground != null){
-                Rect rect = new  Rect(0,0,displayWidth,displayHeight);
-                canvas.drawBitmap(pageBackground,null,rect,null);
+            if(isNightMode){
+                canvas.drawColor(Color.BLACK);
             }else{
-                canvas.drawColor(Color.WHITE);
+                if(pageBackground != null){
+                    Rect rect = new  Rect(0,0,displayWidth,displayHeight);
+                    canvas.drawBitmap(pageBackground,null,rect,null);
+                }else{
+                    canvas.drawColor(Color.WHITE);
+                }
             }
             for(String line : content){
                 y += fontSize+lineSpace;
@@ -278,19 +296,28 @@ private Vector<String> pageDown(){
         return fontSize;
     }
     public void setPercent(float percent){
+        if(percent <= 100){
         float position = percent*mapperFileLength/100;
         end = (int) position;
-        nextPage();
+        if(end ==0) {
+            nextPage();
+        }else{
+            nextPage();
+            prePage();
+            nextPage();
+        }
+        }
     }
     public void setPosition(int position){
         end = position;
         nextPage();
     }
-    public void setPageBackground(Bitmap bitmap){
+    public void setPageBackground(Canvas canvas,Bitmap bitmap){
         pageBackground = bitmap;
+        printPage(canvas);
     }
     //读取10kb文件
-    private byte[] getBuffer(){
+    /*private byte[] getBuffer(){
         byte[] tempByte;
         if(position2+bufferLength < mapperFileLength ){
         while(mappedFile.get(position2+bufferLength) != 0x0a ){
@@ -308,7 +335,7 @@ private Vector<String> pageDown(){
         }
         }
         return tempByte;
-    }
+    }*/
     public void getChapter(){
         int index = 0;
         Pattern pattern = Pattern.compile("^[0-9零一二三四五六七八九十百千万 ]+$");
@@ -370,27 +397,6 @@ private Vector<String> pageDown(){
         }
         return num;
     }
-    public String[] getChapter2(){
-        Pattern pattern = Pattern.compile("^第[0-9零一二三四五六七八九十百千万 ]+"+keyWord+"$");
-        ArrayList<String> list = new ArrayList<String>();
-        byte[] bytes  = new byte[mapperFileLength];
-        String str = "";
-        for(int i = 0;i<mapperFileLength;i++) {
-            bytes[i] = mappedFile.get(i);
-        }
-            try{
-               str = new String(bytes,code);
-            }catch (Exception e){
-                e.printStackTrace();
-            }
-            Matcher m = pattern.matcher(str);
-        while(m.find()){
-            list.add(m.group());
-            index++;
-        }
-        String[] strings = list.toArray(new String[list.size()]);
-        return strings;
-    }
     public int getPositionFromChapter(String chapterName){
         int position = wholeString.indexOf(chapterName);
         String temp = wholeString.substring(0,position);
@@ -404,6 +410,63 @@ private Vector<String> pageDown(){
         }
         return pos;
     }
+    private int getPositionFromKeyword(String keyword,int p){
+        stringPosition = wholeString.indexOf(keyword,p+1);
+        if(stringPosition != -1) {
+            String temp = wholeString.substring(0, stringPosition);
+            int pos = 0;
 
-
+            try {
+                byte[] bytes = temp.getBytes(code);
+                pos = bytes.length;
+            } catch (UnsupportedEncodingException u) {
+                u.printStackTrace();
+            }
+            return pos;
+        }else{
+            return stringPosition;
+        }
+    }
+    public void setNightMode(Canvas canvas,boolean which){
+        if(which){
+            myPaint.setColor(Color.WHITE);
+        }else{
+            myPaint.setColor(Color.BLACK);
+        }
+        isNightMode = which;
+        printPage(canvas);
+    }
+    public int searchContent(Canvas canvas,String key,String mode){
+        if(mode.equals("content")) {
+            searchKey = key;
+            keywordPos = getPositionFromKeyword(key,stringPosition);
+            if(keywordPos != -1){
+            setPosition(keywordPos);
+            //newWholeString = wholeString.substring(keywordPos);
+            }else{
+                return keywordPos;
+            }
+        }else{
+            keywordPos = getPositionFromKeyword(searchKey,stringPosition);
+            //setPosition(keywordPos);
+            if(keywordPos != -1) {
+                setPosition(keywordPos);
+                //newWholeString = newWholeString.substring(keywordPos);
+            }else{
+                return keywordPos;
+            }
+        }
+        printPage(canvas);
+        return 0;
+    }
+    public void returnToOriginPos(Canvas canvas){
+        setPosition(nowPos);
+        printPage(canvas);
+    }
+    public void resetKeywordPos(){
+        stringPosition = 0;
+    }
+    public void saveNowPos(){
+        nowPos = begin;
+    }
 }
