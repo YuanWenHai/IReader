@@ -174,5 +174,10 @@ public class BookmarkPage extends Activity implements AdapterView.OnItemClickLis
         finish();
 
     }
+    @Override
+    public void onDestroy(){
+        factory.closeStream();
+        super.onDestroy();
+    }
 
 }

@@ -12,5 +12,5 @@
         android:layout_height="wrap_content"
         android:id="@+id/book_name"
         android:layout_marginLeft="10dp"
-        android:textSize="40sp"/>
+        android:textSize="24sp"/>
 </LinearLayout>

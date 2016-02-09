@@ -19,6 +19,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.will.ireader.R;
+import com.will.ireader.activity.BookPage;
 import com.will.ireader.activity.MainPageActivity;
 
 import java.io.File;
@@ -68,7 +69,10 @@ public class FileSelector extends Activity {
                 }else{
                     //将文件名与路径写入SQLiteDatabase中,过滤非txt文件
                     if(((String)dataList.get(position).get("name")).toUpperCase().contains(".TXT")){
-                    iReaderDB.saveBook((String)dataList.get(position).get("name"),(String)dataList.get(position).get("path"));
+                    iReaderDB.saveBook((String) dataList.get(position).get("name"), (String) dataList.get(position).get("path"));
+                        Intent intent = new Intent(FileSelector.this,BookPage.class);
+                        intent.putExtra("name",(String)dataList.get(position).get("name"));
+                        startActivity(intent);
                     Log.e("OnItemClickListener",(String)dataList.get(position).get("path"));
                 }}
             }
@@ -163,14 +167,18 @@ public class FileSelector extends Activity {
         File[] files = file.listFiles();
         for(int i = 0;i<files.length;i++){
             map = new HashMap<String,Object>();
-            map.put("name",files[i].getName());
-            map.put("path",files[i].getPath());
-            if(files[i].isDirectory()){
+            if(files[i].isDirectory()&&!files[i].getName().contains(".")){
+                map.put("name",files[i].getName());
+                map.put("path",files[i].getPath());
                 map.put("icon",R.drawable.icon_folder);
-            }else{
+            }else if(/*!files[i].isDirectory()&& */files[i].getName().charAt(0) != '.'){
+                map.put("name",files[i].getName());
+                map.put("path",files[i].getPath());
                 map.put("icon",R.drawable.icon_doc);
             }
-            list.add(map);
+            if(map.get("name") != null) {
+                list.add(map);
+            }
         }
         dataList = list;
     }

@@ -112,8 +112,8 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
             }else{
                 pageFactory.setNightMode(canvas,true);
             }
-            pageFactory.openBook(bookPath,position);
-            pageFactory.printPage(canvas);
+            pageFactory.openBook(bookPath, position);
+            pageFactory.printPage(canvas, this);
         }catch(Exception e){
             e.printStackTrace();
         }
@@ -225,7 +225,7 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
             case R.id.increase_font://增大字体
                 pageFactory.setFontSize(pageFactory.getFontSize()+2);
                 fontSizeDescription.setText("当前字号" + pageFactory.getFontSize());
-                pageFactory.printPage(canvas);
+                pageFactory.printPage(canvas );
                 pageView.invalidate();
                 break;
             case R.id.decrease_font://减小字体
@@ -238,7 +238,7 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
                 String editTextContent = progressEditText.getText().toString();
                 if(editTextContent != null && editTextContent != "");{
                 pageFactory.setPercent(Float.parseFloat(editTextContent));
-                pageFactory.printPage(canvas);
+                pageFactory.printPage(canvas );
                 pageView.invalidate();
                 break;
             }
@@ -296,6 +296,7 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
     @Override
     public void onDestroy(){
         unregisterReceiver(myReceiver);
+        pageFactory.closeStream();
         super.onDestroy();
     }
     private void initializeProgressDialog(){
@@ -347,7 +348,7 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
         public void onReceive(Context context,Intent intent){
             int pos = intent.getIntExtra("pos",0);
             pageFactory.setPosition(pos);
-            pageFactory.printPage(canvas);
+            pageFactory.printPage(canvas );
             pageView.invalidate();
         }
     }

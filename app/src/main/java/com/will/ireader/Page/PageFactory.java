@@ -1,20 +1,26 @@
 package com.will.ireader.Page;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.os.BatteryManager;
 
 import com.will.ireader.file.IReaderDB;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.text.DecimalFormat;
+import java.util.Calendar;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -49,6 +55,9 @@ public class PageFactory {
     private int keywordPos = 0;
     private int nowPos;
     private String searchKey = "";
+    private String level = "";
+    private Context context;
+    private int width;
     public String test;
     public int stringPosition;
     public PageFactory(int height,int width,int size){
@@ -234,6 +243,61 @@ private Vector<String> pageDown(){
         end = begin;//通过以上一系列运行，得到向上翻页后的第一个position，并将其赋给end，再调用pageDown方法。
         return lines;
     }
+    public void printPage(final Canvas  canvas, Context context){
+        if( content.size() == 0){
+            end = begin;
+            content = pageDown();
+        }
+        if(content.size()>0){
+            int y = margin;
+            if(isNightMode){
+                canvas.drawColor(Color.BLACK);
+            }else{
+                if(pageBackground != null){
+                    Rect rect = new  Rect(0,0,displayWidth,displayHeight);
+                    canvas.drawBitmap(pageBackground,null,rect,null);
+                }else{
+                    canvas.drawColor(Color.WHITE);
+                }
+            }
+            for(String line : content){
+                y += fontSize+lineSpace;
+                canvas.drawText(line,margin,y,myPaint);
+            }
+            float percent = (float) begin /mapperFileLength*100;
+            DecimalFormat format = new DecimalFormat("#0.00");
+            String strPercent = format.format(percent);
+            int length = (int ) myPaint.measureText(strPercent);
+            canvas.drawText(strPercent + "%", (displayWidth - length) / 2, displayHeight - margin, myPaint);
+            //显示时间
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(System.currentTimeMillis());
+            int hour = calendar.get(Calendar.HOUR_OF_DAY);
+            int minute = calendar.get(Calendar.MINUTE);
+            canvas.drawText("Time:" + hour + ":" + minute, margin, displayHeight - margin, myPaint);
+            //显示电量
+            IntentFilter intentFilter = new IntentFilter();
+            intentFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
+             BroadcastReceiver receiver  = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    PageFactory.this.context = context;
+                    int scaledlevel = intent.getIntExtra(BatteryManager.EXTRA_LEVEL,-1);
+                    int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+                    level = "电量："+String.valueOf(scaledlevel*100/scale);
+                    float[] widths = new float[level.length()];
+                    width = 0;
+                    myPaint.getTextWidths(level, widths);
+                    for(int x = 0;x<level.length();x++){
+                        width += Math.ceil(widths[x]);
+                    }
+                    canvas.drawText(level, displayWidth - margin - width, displayHeight - margin, myPaint);
+                    context.unregisterReceiver(this);
+                }
+            };
+            context.registerReceiver(receiver, intentFilter);
+        }
+    }
     public void printPage(Canvas canvas){
         if( content.size() == 0){
             end = begin;
@@ -259,7 +323,37 @@ private Vector<String> pageDown(){
             DecimalFormat format = new DecimalFormat("#0.00");
             String strPercent = format.format(percent);
             int length = (int ) myPaint.measureText(strPercent);
-            canvas.drawText(strPercent+"%",(displayWidth-length)/2,displayHeight-margin,myPaint);
+            canvas.drawText(strPercent + "%", (displayWidth - length) / 2, displayHeight - margin, myPaint);
+            //显示时间
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(System.currentTimeMillis());
+            int hour = calendar.get(Calendar.HOUR_OF_DAY);
+            int minute = calendar.get(Calendar.MINUTE);
+            canvas.drawText("Time:"+hour+":"+minute,margin,displayHeight-margin,myPaint);
+            //显示已得到的电量
+            canvas.drawText(level, displayWidth - margin - width, displayHeight - margin, myPaint);
+            //显示电量
+            IntentFilter intentFilter = new IntentFilter();
+            intentFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
+            final BroadcastReceiver receiver  = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    context.unregisterReceiver(this);
+                    int scaledlevel = intent.getIntExtra(BatteryManager.EXTRA_LEVEL,-1);
+                    int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+                    level = "电量："+String.valueOf(scaledlevel*100/scale);
+
+                }
+            };
+            float[] widths = new float[level.length()];
+             width = 0;
+            myPaint.getTextWidths(level, widths);
+            for(int x = 0;x<level.length();x++){
+                width += Math.ceil(widths[x]);
+            }
+            //canvas.drawText(level,displayWidth-margin-width,displayHeight-margin,myPaint);
+            context.registerReceiver(receiver,intentFilter);
+
         }
     }
     public void nextPage(){
@@ -429,12 +523,12 @@ private Vector<String> pageDown(){
     }
     public void setNightMode(Canvas canvas,boolean which){
         if(which){
-            myPaint.setColor(Color.WHITE);
+            myPaint.setColor(Color.rgb(190, 190, 190));
         }else{
             myPaint.setColor(Color.BLACK);
         }
         isNightMode = which;
-        printPage(canvas);
+        printPage(canvas );
     }
     public int searchContent(Canvas canvas,String key,String mode){
         if(mode.equals("content")) {
@@ -456,17 +550,24 @@ private Vector<String> pageDown(){
                 return keywordPos;
             }
         }
-        printPage(canvas);
+        printPage(canvas );
         return 0;
     }
     public void returnToOriginPos(Canvas canvas){
         setPosition(nowPos);
-        printPage(canvas);
+        printPage(canvas );
     }
     public void resetKeywordPos(){
         stringPosition = 0;
     }
     public void saveNowPos(){
         nowPos = begin;
+    }
+    public void closeStream(){
+        try{
+            randomFile.close();
+        }catch (IOException i){
+            i.printStackTrace();
+        }
     }
 }
