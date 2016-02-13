@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    <GridView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:numColumns="4"
+        android:horizontalSpacing="15dp"
+        android:verticalSpacing="15dp"
+        android:id="@+id/choose_color_grid_view"
+        android:gravity="center">
+    </GridView>
+
+</RelativeLayout>

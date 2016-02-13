@@ -62,8 +62,6 @@ public class IReaderDB {
         }if(cursor!= null){
             cursor.close();
         }
-
-
             }
 
 
@@ -98,6 +96,7 @@ public class IReaderDB {
         return dirName;
     }
     public ArrayList<String> getDirPath(){
+        getDir();
         return dirPath;
     }
     public void deleteBook(String name){

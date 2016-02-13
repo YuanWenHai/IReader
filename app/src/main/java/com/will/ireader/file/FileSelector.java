@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -104,7 +105,7 @@ public class FileSelector extends Activity {
                         }else if(((String)dataList.get(i).get("name")).toUpperCase().contains(".TXT")){
                             String bookName = (String) dataList.get(i).get("name");
                             String bookPath = (String) dataList.get(i).get("path");
-                            iReaderDB.saveBook(bookName,bookPath);
+                            iReaderDB.saveBook(bookName, bookPath);
                         }
                     }
                 }
@@ -112,19 +113,18 @@ public class FileSelector extends Activity {
                 new Thread (new Runnable(){
                     @Override
                 public void run (){
-
-
+                        SystemClock.sleep(50);
                             File file;
-
-
                                 List<String> list = iReaderDB.getDirPath();
-                                if(list != null){
+                                if(list.size() > 0){
                                 for(int i =0;i<list.size();i++){
                                     file = new File(list.get(i));
                                     File[] files = file.listFiles();
                                     if(files.length != 0){
                                     recursion(files);
                                     }
+                                    Intent in = new Intent (FileSelector.this,MainPageActivity.class);
+                                    startActivity(in);
                                 }
                                 }
                             }
@@ -135,18 +135,12 @@ public class FileSelector extends Activity {
                                         if( files[i].isDirectory()){
                                             recursion(files[i].listFiles());
                                         }else if (files[i].getName().toUpperCase().contains(".TXT")){
-                                            iReaderDB.saveBook(files[i].getName(),files[i].getPath());
-                                            Intent intent = new Intent (FileSelector.this,MainPageActivity.class);
-                                            startActivity(intent);
+                                            iReaderDB.saveBook(files[i].getName(), files[i].getPath());
                                         }
                                     }
                                 }
                             }
-
-
-
                 }).start();
-
             }
         });
         //取消键

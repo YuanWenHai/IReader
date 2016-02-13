@@ -23,7 +23,6 @@
             android:launchMode="singleTask"></activity>
         <activity android:name=".file.FileSelector"></activity>
         <activity android:name=".activity.BookPage"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
             android:launchMode="singleTask"></activity>
         <activity android:name=".activity.BookmarkPage"
             android:launchMode="singleTask"></activity>

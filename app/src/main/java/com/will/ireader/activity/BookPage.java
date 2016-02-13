@@ -12,6 +12,8 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -21,6 +23,8 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
@@ -30,6 +34,7 @@ import android.widget.Toast;
 
 import com.will.ireader.Page.PageFactory;
 import com.will.ireader.R;
+import com.will.ireader.View.ColorAdapter;
 import com.will.ireader.View.MenuAdapter;
 import com.will.ireader.View.PageView;
 import com.will.ireader.file.IReaderDB;
@@ -40,6 +45,8 @@ import java.io.File;
  * Created by Will on 2016/2/2.
  */
 public class BookPage extends Activity implements AdapterView.OnItemClickListener {
+    private final int[] color = new int[]{Color.WHITE,Color.RED,Color.LTGRAY,Color.BLACK,Color.BLUE,
+    Color.CYAN, Color.DKGRAY,Color.GRAY};
     private final int  GET_IMAGE = 1;
     private PageFactory pageFactory;
     private SharedPreferences.Editor editor;
@@ -66,6 +73,7 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
     private AlertDialog fontChangeDialog;//调整字体大小dialog
     private AlertDialog progressChangeDialog;//进度跳转dialog
     private AlertDialog searchDialog;
+    private AlertDialog chooseFontColorDialog;
     private Button searchContent;
     private Button nextContent;
     private Button confirmSkip;
@@ -76,18 +84,22 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
     private final int BACKGROUND = 3;//设置背景
     private final int NIGHT_MODE = 4;//夜间模式
     private final int SEARCH = 5;//全文搜索
-    private final int LINE_SPACEING = 6;//调整行距
+    private final int CHOOSE_FONT_COLOR = 6;//改变字体颜色
     private final int RE_CODE = 7;//处理乱码\
     private MyListener myListener = new MyListener();
     private boolean cancelSearchDialogIndex = false;
     private String lastSearchContent = "";
     private int searchPosition;
     MyReceiver myReceiver;
+    private Button chooseBackground;
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         inflater = LayoutInflater.from(this);
         pageView = new PageView(this);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(pageView);
         dm = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(dm);
@@ -96,7 +108,8 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
         sp = getSharedPreferences("config", MODE_PRIVATE);
         editor = sp.edit();
         fontSize = sp.getInt("font_size",45);
-        pageFactory = new PageFactory(dm.heightPixels,dm.widthPixels,fontSize);
+        int fontColor = sp.getInt("font_color", Color.BLACK);
+        pageFactory = new PageFactory(dm.heightPixels,dm.widthPixels,fontSize,fontColor);
         try{
             bookName= this.getIntent().getStringExtra("name");
             bookPath = iReaderDB.getPath(bookName);
@@ -105,7 +118,6 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
             String imagePath;
             if(!sp.getBoolean("night_mode",false)){
             if((imagePath = sp.getString("image_path","空")) == "空" || !(new File(imagePath).exists())) {
-                pageFactory.setPageBackground(canvas,BitmapFactory.decodeResource(this.getResources(), R.drawable.book_bg11));
             }else {
                 pageFactory.setPageBackground(canvas,BitmapFactory.decodeFile(imagePath));
             }
@@ -141,7 +153,7 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
             }
         });
         initializeReceiver();
-        initializeMenuDialog();
+        //initializeMenuDialog();
     }
     @Override
     public void onItemClick(AdapterView<?>parent,View view,int position,long id){
@@ -164,8 +176,8 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
                 menuDialog.cancel();
                 break;
             case BACKGROUND:
-                Intent i = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                startActivityForResult(i,GET_IMAGE);
+                initializeChooseFontColorDialog();
+                chooseFontColorDialog.show();
                 menuDialog.cancel();
                 break;
             case NIGHT_MODE:
@@ -190,8 +202,7 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
                 lastSearchContent = "";
                 searchPosition = 0;
                 pageFactory.saveNowPos();
-
-
+                break;
         }
 
     }
@@ -211,7 +222,8 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
     }
     public boolean onMenuOpened(int FeatureId,Menu menu){
         if(menuDialog == null){
-            menuDialog = new AlertDialog.Builder(this).setView(menuView).show();
+            initializeMenuDialog();
+            menuDialog.show();
         }else{
             menuDialog.show();
         }
@@ -236,7 +248,7 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
                 break;
             case R.id.change_progress_confirm://确定跳转进度
                 String editTextContent = progressEditText.getText().toString();
-                if(editTextContent != null && editTextContent != "");{
+                if(editTextContent != null && !editTextContent.equals("")){
                 pageFactory.setPercent(Float.parseFloat(editTextContent));
                 pageFactory.printPage(canvas );
                 pageView.invalidate();
@@ -319,8 +331,9 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
             increaseFont = (Button) changeFontView.findViewById(R.id.increase_font);
             decreaseFont = (Button) changeFontView.findViewById(R.id.decrease_font);
             fontSizeDescription = (TextView) changeFontView.findViewById(R.id.font_size);
-            fontSizeDescription.setText("当前字号"+pageFactory.getFontSize());
+            fontSizeDescription.setText("当前字号" + pageFactory.getFontSize());
             fontChangeDialog.setView(changeFontView);
+            fontChangeDialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
             increaseFont.setOnClickListener(myListener);
             decreaseFont.setOnClickListener((myListener));
         }
@@ -331,8 +344,11 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
             MenuAdapter adapter = new MenuAdapter();
             GridView gridView = (GridView) menuView.findViewById(R.id.menu_grid_view);
             gridView.setAdapter(adapter.getMenuAdapter(this));
+            gridView.setSelector(new ColorDrawable(Color.TRANSPARENT));
             menuDialog = new AlertDialog.Builder(this).create();
+            //menuDialog = new AlertDialog(this,R.style.dialog);
             menuDialog.setView(menuView);
+            menuDialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
             gridView.setOnItemClickListener(this);
         }
     }
@@ -340,7 +356,7 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("INVALIDATE_PAGEVIEW");
         myReceiver = new MyReceiver();
-        registerReceiver(myReceiver,intentFilter);
+        registerReceiver(myReceiver, intentFilter);
 
     }
     class MyReceiver extends BroadcastReceiver{
@@ -387,12 +403,12 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
                 i.printStackTrace();
             }
             }*/
-            pageFactory.setNightMode(canvas,false);
-            editor.putBoolean("night_mode",false);
+            pageFactory.setNightMode(canvas, false);
+            editor.putBoolean("night_mode", false);
             Bitmap bit = BitmapFactory.decodeFile(filePath);
-            editor.putString("image_path",filePath);
+            editor.putString("image_path", filePath);
             editor.commit();
-            pageFactory.setPageBackground(canvas,bit);
+            pageFactory.setPageBackground(canvas, bit);
             pageView.invalidate();
         }
     }
@@ -413,7 +429,7 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
         searchDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialog) {
-                if(!cancelSearchDialogIndex) {
+                if (!cancelSearchDialogIndex) {
                     pageFactory.returnToOriginPos(canvas);
                     pageView.invalidate();
                     cancelSearchDialogIndex = false;
@@ -421,6 +437,34 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
             }
         });
     }
+    }
+    private void initializeChooseFontColorDialog(){
+        //if(chooseFontColorDialog == null){
+        chooseFontColorDialog = new AlertDialog.Builder(this).create();
+        View view = View.inflate(this,R.layout.main_page_custom,null);
+        GridView colorGridView = (GridView)view.findViewById(R.id.main_page_custom_grid_view);
+        chooseBackground = (Button) view.findViewById(R.id.main_page_custom_button);
+        colorGridView.setSelector(new ColorDrawable(Color.TRANSPARENT));
+        colorGridView.setAdapter(new ColorAdapter(this));
+        chooseFontColorDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.argb(100,200,200,200)));
+        colorGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                pageFactory.setFontColor(canvas, color[position]);
+                pageView.invalidate();
+                editor.putInt("font_color", color[position]);
+                editor.commit();
+            }
+        });
+        chooseBackground.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                startActivityForResult(i,GET_IMAGE);
+                menuDialog.cancel();
+            }
+        });
+        chooseFontColorDialog.setView(view);
     }
     }
 

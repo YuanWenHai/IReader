@@ -60,7 +60,7 @@ public class PageFactory {
     private int width;
     public String test;
     public int stringPosition;
-    public PageFactory(int height,int width,int size){
+    public PageFactory(int height, int width, int size, int fontColor){
         displayHeight = height;
         displayWidth = width;
         fontSize = size;
@@ -68,7 +68,7 @@ public class PageFactory {
         pageWidth = displayWidth -margin*2;
         myPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         myPaint.setTextSize(fontSize);
-        myPaint.setColor(Color.BLACK);
+        myPaint.setColor(fontColor);
         lineNumber = pageHeight/(fontSize+lineSpace);
 
     }
@@ -257,7 +257,7 @@ private Vector<String> pageDown(){
                     Rect rect = new  Rect(0,0,displayWidth,displayHeight);
                     canvas.drawBitmap(pageBackground,null,rect,null);
                 }else{
-                    canvas.drawColor(Color.WHITE);
+                    canvas.drawColor(Color.rgb(252,236,223));
                 }
             }
             for(String line : content){
@@ -312,7 +312,7 @@ private Vector<String> pageDown(){
                     Rect rect = new  Rect(0,0,displayWidth,displayHeight);
                     canvas.drawBitmap(pageBackground,null,rect,null);
                 }else{
-                    canvas.drawColor(Color.WHITE);
+                    canvas.drawColor(Color.rgb(252,236,223));
                 }
             }
             for(String line : content){
@@ -569,5 +569,9 @@ private Vector<String> pageDown(){
         }catch (IOException i){
             i.printStackTrace();
         }
+    }
+    public void setFontColor(Canvas canvas,int color){
+        myPaint.setColor(color);
+        printPage(canvas);
     }
 }

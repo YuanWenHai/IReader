@@ -1,8 +1,9 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/title"
+    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="60dp" >
+    android:layout_height="wrap_content" >
 
     <TextView
         android:id="@+id/dialog_content"
@@ -10,7 +11,6 @@
         android:layout_marginTop="20dp"
         android:layout_height="60dp"
         android:layout_marginLeft="25dp"
-        android:text="确认删除？"
         android:textColor="#000000"
         android:textSize="22sp" />
 
@@ -34,7 +34,15 @@
             android:layout_marginLeft="15dp"
             android:text="同时删除本地文件"
             android:textColor="#000000"
-            android:textSize="24sp" />
+            android:textSize="20sp" />
     </LinearLayout>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/confirm_delete"
+        android:text="确认删除"
+        android:textSize="20sp"
+        android:textColor="@android:color/black"
+        android:background="#70c8c8c8"/>
 
-</RelativeLayout>
+</LinearLayout>
