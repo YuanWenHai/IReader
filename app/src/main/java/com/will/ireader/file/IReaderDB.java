@@ -6,7 +6,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * Created by Will on 2016/1/31.
@@ -112,32 +111,24 @@ public class IReaderDB {
 
         return path;
     }
-    public void saveBookChapter(String bookName,String chapterName,int chapterNumber,int chapterPosition){
+    public void saveBookChapter(String bookName,String chapterName){
         ContentValues values = new ContentValues();
         values.put("book_name",bookName);
-        values.put("chapter_number",chapterNumber);
-        values.put("chapter_position",chapterPosition);
         values.put("chapter_name",chapterName);
         db.insert("Bookmark", null, values);
     }
-    public ArrayList<HashMap<String,Object>> getBookChapter(String bookName){
-        ArrayList<HashMap<String,Object>> list = new ArrayList<HashMap<String,Object>>();
+    public String[]getBookChapter(String bookName){
+        ArrayList<String> list = new ArrayList<String>();
         String name;
-        int position;
-        HashMap<String,Object> map;
         Cursor cursor = db.query("Bookmark", null, "book_name=?", new String[]{bookName}, null, null, null);
         if(cursor.moveToFirst()){
             do{
-                map = new HashMap<String,Object>();
                 name = cursor.getString(cursor.getColumnIndex("chapter_name"));
-                position = cursor.getInt(cursor.getColumnIndex("chapter_position"));
-                map.put("name",name);
-                map.put("position",position);
-                list.add(map);
+                list.add(name);
             }while(cursor.moveToNext());
         }
         cursor.close();
-        return  list;
+        return  list.toArray(new String[list.size()]);
     }
     public void deleteBookmark(String name){
         db.delete("Bookmark","book_name=?",new String[]{name});

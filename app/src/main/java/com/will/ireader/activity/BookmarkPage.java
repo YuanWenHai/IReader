@@ -17,16 +17,11 @@ import com.will.ireader.Page.PageFactory;
 import com.will.ireader.R;
 import com.will.ireader.file.IReaderDB;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-
 /**
  * Created by Will on 2016/2/4.
  */
 public class BookmarkPage extends Activity implements AdapterView.OnItemClickListener{
     private String[] chapters;
-    private int[] positions;
-    private String[] bookmarkData = new String[]{"1","2"};
     private String[] addItem = new String[]{"按章读取","按节读取","按回读取","删除目录"};
     private AlertDialog addDialog;
     private PageFactory factory;
@@ -89,15 +84,17 @@ public class BookmarkPage extends Activity implements AdapterView.OnItemClickLis
                 new Thread(new Runnable(){
                     @Override
                 public void run(){
-                        factory.getChapter();
+                        chapters = factory.getChapter().toArray(new String[factory.getChapter().size()]);
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                initializeList();
                                 bookmarkAdapter = new ArrayAdapter<String>(BookmarkPage.this, android.R.layout.simple_expandable_list_item_1, chapters);
                                 list.setAdapter(bookmarkAdapter);
                             }
                         });
+                        for(int i = 0;i<chapters.length;i++){
+                            iReaderDB.saveBookChapter(bookName,chapters[i]);
+                        }
                     }
                 }).start();
                 break;
@@ -109,15 +106,17 @@ public class BookmarkPage extends Activity implements AdapterView.OnItemClickLis
                 new Thread(new Runnable(){
                     @Override
                     public void run(){
-                        factory.getChapter();
+                        chapters = factory.getChapter().toArray(new String[factory.getChapter().size()]);
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                initializeList();
                                 bookmarkAdapter = new ArrayAdapter<String>(BookmarkPage.this,android.R.layout.simple_expandable_list_item_1,chapters);
                                 list.setAdapter(bookmarkAdapter);
                             }
                         });
+                        for(int i = 0;i<chapters.length;i++){
+                            iReaderDB.saveBookChapter(bookName,chapters[i]);
+                        }
                     }
                 }).start();
                 break;
@@ -129,15 +128,18 @@ public class BookmarkPage extends Activity implements AdapterView.OnItemClickLis
                 new Thread(new Runnable(){
                     @Override
                     public void run(){
-                        factory.getChapter();
+                        chapters = factory.getChapter().toArray(new String[factory.getChapter().size()]);
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                initializeList();
                                 bookmarkAdapter = new ArrayAdapter<String>(BookmarkPage.this, android.R.layout.simple_expandable_list_item_1, chapters);
                                 list.setAdapter(bookmarkAdapter);
                             }
                         });
+                        for(int i = 0;i<chapters.length;i++){
+                            iReaderDB.saveBookChapter(bookName,chapters[i]);
+                        }
+
                     }
                 }).start();
                 break;
@@ -154,17 +156,7 @@ public class BookmarkPage extends Activity implements AdapterView.OnItemClickLis
     }
     private void initializeList(){
         iReaderDB = IReaderDB.getInstance(this);
-        ArrayList<HashMap<String,Object>> listMap;
-        HashMap<String,Object> map;
-        listMap = iReaderDB.getBookChapter(bookName);
-        chapters = new String[listMap.size()];
-        positions = new int[listMap.size()];
-        for(int i = 0;i<listMap.size();i++){
-            map = listMap.get(i);
-            chapters[i] = (String)map.get("name");
-            positions[i] = (Integer)map.get("position");
-        }
-
+        chapters = iReaderDB.getBookChapter(bookName);
     }
     @Override
    public  void onBackPressed(){

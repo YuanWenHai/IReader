@@ -20,6 +20,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -410,71 +411,22 @@ private Vector<String> pageDown(){
         pageBackground = bitmap;
         printPage(canvas);
     }
-    //读取10kb文件
-    /*private byte[] getBuffer(){
-        byte[] tempByte;
-        if(position2+bufferLength < mapperFileLength ){
-        while(mappedFile.get(position2+bufferLength) != 0x0a ){
-            position2++;
-        }
-        position2 += bufferLength;
-        }else{
-            position2 += (mapperFileLength-position2);
-        }
-        int size = position2 - position1;
-        tempByte = new byte[size];
-        if(position2<=mapperFileLength){
-        for(int i = 0;i<size;i++){
-            tempByte[i] = mappedFile.get(position1+i);
-        }
-        }
-        return tempByte;
-    }*/
-    public void getChapter(){
-        int index = 0;
+    public ArrayList<String> getChapter(){
+        ArrayList<String> list = new ArrayList<String>();
         Pattern pattern = Pattern.compile("^[0-9零一二三四五六七八九十百千万 ]+$");
-        /*byte[] bookByte = new byte[mapperFileLength];
-        for(int i = 0;i<mapperFileLength;i++){
-            bookByte[i] = mappedFile.get(i);
-        }
-       // while(getBuffer().length > 0){
-        //byteTemp = getBuffer();
-        position1 = position2;
-        try{
-            bookString = new String(bookByte,code);
-        }catch(UnsupportedEncodingException e){
-            e.printStackTrace();
-        }*/
-            String bookString = wholeString;
-            while(bookString.contains("第")){
-                //strTemp = strTemp.substring(strTemp.indexOf(第));
-                int wordPosition = bookString.indexOf("第");
-                if(bookString.contains(keyWord)){
-                if(wordPosition < bookString.indexOf(keyWord)){
-                    int keyWordPosition = bookString.indexOf(keyWord);
-                    String temp = bookString.substring(bookString.indexOf("第")+1,keyWordPosition);
-                    Matcher matcher = pattern.matcher(temp);
-                    if(matcher.matches()){
-                        String chapterName = bookString.substring(wordPosition,bookString.indexOf('\n',wordPosition));
-                        iReaderDB.saveBookChapter(bookName,chapterName,0,wordPosition+index);
-                        index += getByte(bookString.substring(1,keyWordPosition+1));
-                        bookString = bookString.substring(keyWordPosition+1);
-                    }else{
-                        index += getByte(bookString.substring(1,wordPosition+1));
-                        bookString = bookString.substring(wordPosition+1);
-                }
-                }else{
-                    index += getByte(bookString.substring(1,wordPosition));
-                    bookString = bookString.substring(wordPosition);
-
-                }
-                }else{
-                    index += getByte(bookString.substring(1,wordPosition+1));
-                    bookString = bookString.substring(wordPosition+1);
+        int index = 0;
+        int key;
+        do{
+            index = wholeString.indexOf("第",index+1);
+            key = wholeString.indexOf(keyWord,index);
+            if(index != -1 && key != -1){
+                Matcher matcher = pattern.matcher(wholeString.substring(index+1,key));
+                if(matcher.matches()){
+                    list.add(wholeString.substring(index,wholeString.indexOf("\n",index)));
                 }
             }
-
-    //}
+        }while(index != -1 && key != -1);
+        return list;
     }
     public void setKeyWord(String keyWord){
         this.keyWord = keyWord;
