@@ -1,4 +1,4 @@
-package com.will.ireader.View;
+package com.will.Stardust.View;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -8,7 +8,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 
-import com.will.ireader.R;
+import com.will.Stardust.R;
 
 /**
  * Created by Will on 2016/2/10.

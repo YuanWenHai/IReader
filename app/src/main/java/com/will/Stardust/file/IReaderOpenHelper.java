@@ -1,4 +1,4 @@
-package com.will.ireader.file;
+package com.will.Stardust.file;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -12,10 +12,6 @@ public class IReaderOpenHelper extends SQLiteOpenHelper {
             "id integer primary key autoincrement," +
             "book_name text," +
             "book_path text)";
-    public static final String CREATE_DIRLIST = "create table DirList(" +
-            "id integer primary key autoincrement," +
-            "dir_name text," +
-            "dir_path text)";
     public static final String CREATE_BOOKMARK = "create table Bookmark (" +
             "id integer primary key autoincrement," +
             "book_name text," +
@@ -28,7 +24,6 @@ public class IReaderOpenHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db){
         db.execSQL(CREATE_BOOKLIST);
-        db.execSQL(CREATE_DIRLIST);
         db.execSQL(CREATE_BOOKMARK);
     }
     @Override

@@ -1,4 +1,4 @@
-package com.will.ireader.activity;
+package com.will.Stardust.activity;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -7,7 +7,7 @@ import android.os.SystemClock;
 import android.view.animation.AlphaAnimation;
 import android.widget.LinearLayout;
 
-import com.will.ireader.R;
+import com.will.Stardust.R;
 
 
 /**

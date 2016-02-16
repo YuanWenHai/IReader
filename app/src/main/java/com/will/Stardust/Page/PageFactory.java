@@ -1,4 +1,4 @@
-package com.will.ireader.Page;
+package com.will.Stardust.Page;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -11,7 +11,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.BatteryManager;
 
-import com.will.ireader.file.IReaderDB;
+import com.will.Stardust.file.IReaderDB;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,11 +46,10 @@ public class PageFactory {
     private Bitmap pageBackground;
     private int position1 = 0;
     private int position2 = 0;
-    private int bufferLength = 1024*2000;
     private String keyWord = "章";
     private IReaderDB iReaderDB ;
     private String bookName;
-    private String wholeString = "";
+    private String wholeString = "none";
     private String code = "GBK";
     private boolean isNightMode = false;
     private int keywordPos = 0;
@@ -59,6 +58,7 @@ public class PageFactory {
     private String level = "";
     private Context context;
     private int width;
+    private ArrayList<Integer> chapterPositions;
     public String test;
     public int stringPosition;
     public PageFactory(int height, int width, int size, int fontColor){
@@ -73,20 +73,7 @@ public class PageFactory {
         lineNumber = pageHeight/(fontSize+lineSpace);
 
     }
-    public PageFactory(String name ,String path,Context context){
-        openBook(path, new int[]{0, 0});
-        iReaderDB = IReaderDB.getInstance(context);
-        bookName = name;
-        byte[] bookByte = new byte[mapperFileLength];
-        for(int i = 0;i<mapperFileLength;i++){
-            bookByte[i] = mappedFile.get(i);
-        }
-        try{
-            wholeString = new String(bookByte,code);
-        }catch(UnsupportedEncodingException e){
-            e.printStackTrace();
-        }
-
+    public PageFactory(){
     }
     public void openBook(String path,int[] position){
         File file = new File(path);
@@ -99,15 +86,20 @@ public class PageFactory {
         }
         begin = position[0];
         end = position[1];
-        byte[] bookByte = new byte[mapperFileLength];
-        for(int i = 0;i<mapperFileLength;i++){
-            bookByte[i] = mappedFile.get(i);
-        }
-        try{
-            wholeString = new String(bookByte,code);
-        }catch(UnsupportedEncodingException e){
-            e.printStackTrace();
-        }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                byte[] bookByte = new byte[mapperFileLength];
+                for(int i = 0;i<mapperFileLength;i++){
+                    bookByte[i] = mappedFile.get(i);
+                }
+                try{
+                    wholeString = new String(bookByte,code);
+                }catch(UnsupportedEncodingException e){
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
     //向后读取一个段落，返回二进制数组
     private byte[] readParagraphForward( int end){
@@ -413,9 +405,11 @@ private Vector<String> pageDown(){
     }
     public ArrayList<String> getChapter(){
         ArrayList<String> list = new ArrayList<String>();
+        chapterPositions = new ArrayList<Integer>();
         Pattern pattern = Pattern.compile("^[0-9零一二三四五六七八九十百千万 ]+$");
         int index = 0;
         int key;
+
         do{
             index = wholeString.indexOf("第",index+1);
             key = wholeString.indexOf(keyWord,index);
@@ -423,10 +417,14 @@ private Vector<String> pageDown(){
                 Matcher matcher = pattern.matcher(wholeString.substring(index+1,key));
                 if(matcher.matches()){
                     list.add(wholeString.substring(index,wholeString.indexOf("\n",index)));
+                    chapterPositions.add(index);
                 }
             }
         }while(index != -1 && key != -1);
         return list;
+    }
+    public ArrayList<Integer>getChapterPositions(){
+        return chapterPositions;
     }
     public void setKeyWord(String keyWord){
         this.keyWord = keyWord;
@@ -447,7 +445,6 @@ private Vector<String> pageDown(){
         int position = wholeString.indexOf(chapterName);
         String temp = wholeString.substring(0,position);
         int pos = 0;
-
         try{
             byte[] bytes =temp.getBytes(code);
             pos = bytes.length;
@@ -488,16 +485,13 @@ private Vector<String> pageDown(){
             keywordPos = getPositionFromKeyword(key,stringPosition);
             if(keywordPos != -1){
             setPosition(keywordPos);
-            //newWholeString = wholeString.substring(keywordPos);
             }else{
                 return keywordPos;
             }
         }else{
             keywordPos = getPositionFromKeyword(searchKey,stringPosition);
-            //setPosition(keywordPos);
             if(keywordPos != -1) {
                 setPosition(keywordPos);
-                //newWholeString = newWholeString.substring(keywordPos);
             }else{
                 return keywordPos;
             }
@@ -516,14 +510,66 @@ private Vector<String> pageDown(){
         nowPos = begin;
     }
     public void closeStream(){
+        if(randomFile != null){
         try{
             randomFile.close();
         }catch (IOException i){
             i.printStackTrace();
         }
+        }
     }
     public void setFontColor(Canvas canvas,int color){
         myPaint.setColor(color);
         printPage(canvas);
+    }
+    public void initializeBook(String path){
+        if(wholeString.equals("none")){
+        openBook(path);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    byte[] bookByte = new byte[mapperFileLength];
+                    for(int i = 0;i<mapperFileLength;i++){
+                        bookByte[i] = mappedFile.get(i);
+                    }
+                    try{
+                        wholeString = new String(bookByte,code);
+                    }catch(UnsupportedEncodingException e){
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+
+        }
+    }
+    public void openBook(String path){
+        File file = new File(path);
+        mapperFileLength = (int)file.length();
+        try {
+            randomFile = new RandomAccessFile(file, "r");
+            mappedFile = randomFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, (long) mapperFileLength);
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+    public int getCurrentWordNumber(int position){
+        if(position>0){
+        String temp = "";
+        byte[] bytes = new byte[position];
+        for(int i = 0;i<position;i++){
+            bytes[i] = mappedFile.get(i);
+        }
+        try{
+            temp = new String(bytes,"GBK");
+        }catch(UnsupportedEncodingException u){
+            u.printStackTrace();
+        }
+        int number = temp.length();
+        return  number;
+        }
+        return -1;
+    }
+    public int getBegin(){
+        return begin;
     }
 }

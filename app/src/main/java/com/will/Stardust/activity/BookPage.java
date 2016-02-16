@@ -1,4 +1,4 @@
-package com.will.ireader.activity;
+package com.will.Stardust.activity;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -19,7 +19,6 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
@@ -32,12 +31,12 @@ import android.widget.GridView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.will.ireader.Page.PageFactory;
-import com.will.ireader.R;
-import com.will.ireader.View.ColorAdapter;
-import com.will.ireader.View.MenuAdapter;
-import com.will.ireader.View.PageView;
-import com.will.ireader.file.IReaderDB;
+import com.will.Stardust.Page.PageFactory;
+import com.will.Stardust.R;
+import com.will.Stardust.View.ColorAdapter;
+import com.will.Stardust.View.MenuAdapter;
+import com.will.Stardust.View.PageView;
+import com.will.Stardust.file.IReaderDB;
 
 import java.io.File;
 
@@ -54,7 +53,6 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
     private Canvas canvas;
     private DisplayMetrics dm;
     private SharedPreferences sp;
-    private LayoutInflater inflater;
     private PageView pageView;
     private int fontSize;
     private String bookName ;
@@ -95,7 +93,6 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
-        inflater = LayoutInflater.from(this);
         pageView = new PageView(this);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -115,10 +112,9 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
             bookPath = iReaderDB.getPath(bookName);
             position[0] =sp.getInt(bookName + "start", 0);
             position[1] = sp.getInt(bookName + "end", 0);
-            String imagePath;
+            String imagePath  = sp.getString("image_path","空");
             if(!sp.getBoolean("night_mode",false)){
-            if((imagePath = sp.getString("image_path","空")) == "空" || !(new File(imagePath).exists())) {
-            }else {
+            if(!imagePath.equals("空")  && (new File(imagePath).exists())) {
                 pageFactory.setPageBackground(canvas,BitmapFactory.decodeFile(imagePath));
             }
             }else{
@@ -153,7 +149,6 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
             }
         });
         initializeReceiver();
-        //initializeMenuDialog();
     }
     @Override
     public void onItemClick(AdapterView<?>parent,View view,int position,long id){
@@ -162,6 +157,7 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
                 Intent intent  = new Intent(BookPage.this,BookmarkPage.class);
                 intent.putExtra("name",bookName);
                 intent.putExtra("path", bookPath);
+                intent.putExtra("begin",pageFactory.getBegin());
                 startActivity(intent);
                 menuDialog.cancel();
                 break;
@@ -250,7 +246,7 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
                 String editTextContent = progressEditText.getText().toString();
                 if(editTextContent != null && !editTextContent.equals("")){
                 pageFactory.setPercent(Float.parseFloat(editTextContent));
-                pageFactory.printPage(canvas );
+                pageFactory.printPage(canvas);
                 pageView.invalidate();
                 break;
             }
@@ -377,32 +373,6 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
             Cursor cursor = getContentResolver().query(uri, filePathColumn, null, null, null);
             cursor.moveToFirst();
             String filePath = cursor.getString(cursor.getColumnIndex(filePathColumn[0]));
-            //以下这部分，把图库中的文件复制了一份到软件目录中，后来又觉得没卵用，事实上好像确实没卵用。
-            /*String fileDir = getFilesDir().getPath();
-            String newFilePath = fileDir+"/"+new File(filePath).getName();
-            File newFile = new File(newFilePath);
-            File file = new File(fileDir);
-            if(!file.exists()){
-                file.mkdir();
-            }
-            if(!newFile.exists()){
-            try{
-            FileInputStream inputStream = new FileInputStream(filePath);
-                BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
-                BufferedOutputStream bufferedOutputStream = new BufferedOutputStream((new FileOutputStream(newFilePath)));
-                byte[] temp = new byte[1024];
-                int length = 0;
-                while((length = bufferedInputStream.read(temp))>0){
-                    bufferedOutputStream.write(temp,0,length);
-                }
-                bufferedInputStream.close();
-                bufferedOutputStream.close();
-            }catch(FileNotFoundException f){
-                f.printStackTrace();
-            }catch(IOException i ){
-                i.printStackTrace();
-            }
-            }*/
             pageFactory.setNightMode(canvas, false);
             editor.putBoolean("night_mode", false);
             Bitmap bit = BitmapFactory.decodeFile(filePath);
@@ -439,7 +409,7 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
     }
     }
     private void initializeChooseFontColorDialog(){
-        //if(chooseFontColorDialog == null){
+        if(chooseFontColorDialog == null){
         chooseFontColorDialog = new AlertDialog.Builder(this).create();
         View view = View.inflate(this,R.layout.main_page_custom,null);
         GridView colorGridView = (GridView)view.findViewById(R.id.main_page_custom_grid_view);
@@ -465,6 +435,7 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
             }
         });
         chooseFontColorDialog.setView(view);
+    }
     }
     }
 

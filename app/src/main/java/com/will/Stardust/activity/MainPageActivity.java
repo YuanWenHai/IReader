@@ -1,4 +1,4 @@
-package com.will.ireader.activity;
+package com.will.Stardust.activity;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -25,14 +25,13 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.GridView;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.will.ireader.R;
-import com.will.ireader.View.ColorAdapter;
-import com.will.ireader.file.FileSelector;
-import com.will.ireader.file.IReaderDB;
+import com.will.Stardust.R;
+import com.will.Stardust.View.ColorAdapter;
+import com.will.Stardust.file.FileSelector;
+import com.will.Stardust.file.IReaderDB;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -58,8 +57,9 @@ public class MainPageActivity extends Activity {
     private AlertDialog customDialog;
     private Button customButton;
     private GridView customGridView;
-    private  String backgroundImage = "";
-    int colorNumber;
+    private String backgroundImage = "";
+    private AlertDialog deleteDialog;
+    private int colorNumber;
     MainPageAdapter adapter;
     private final int[] color = new int[]{Color.WHITE,Color.RED,Color.LTGRAY,Color.BLACK,Color.BLUE,
             Color.CYAN, Color.DKGRAY,Color.GRAY};
@@ -78,16 +78,15 @@ public class MainPageActivity extends Activity {
         setContentView(R.layout.main_page);
         mainPageLayout = (RelativeLayout) findViewById(R.id.main_page_layout);
         String filePath  = sp.getString("background_image","");
-        if(!filePath.equals("")){
-            Log.e("setBackground",filePath);
-            mainPageLayout.setBackground(new BitmapDrawable(this.getResources(), filePath));
+        Log.e("setBackground", filePath);
+        if(new File(filePath).exists()){
+                mainPageLayout.setBackground(new BitmapDrawable(this.getResources(), filePath));
         }else{
             mainPageLayout.setBackground(new BitmapDrawable(this.getResources(),backgroundImage));
         }
         setBackground = (Button) findViewById(R.id.set_background_button);
         iReaderDB = IReaderDB.getInstance(this);
         bookList = iReaderDB.getBookName();
-        pathList = iReaderDB.getBookPath();
         add = (Button) findViewById(R.id.add_button);
         add.setTextColor(color[colorNumber]);
         setBackground.setTextColor(color[colorNumber]);
@@ -105,17 +104,15 @@ public class MainPageActivity extends Activity {
             @Override
             public boolean onItemLongClick(AdapterView<?> arg0, View view, final int position, long id) {
                 AlertDialog.Builder dialog = new AlertDialog.Builder(MainPageActivity.this);
-                LayoutInflater inflater = getLayoutInflater().from(MainPageActivity.this);
-                View dialogView = inflater.inflate(R.layout.delete_dialog, null);
+                View dialogView = View.inflate(MainPageActivity.this,R.layout.delete_dialog,null);
                 TextView textView = (TextView) dialogView.findViewById(R.id.dialog_content);
                 textView.setText("确定删除" + bookList.get(position) + "?");
                 Button confirmDelete = (Button) dialogView.findViewById(R.id.confirm_delete);
                 dialog.setView(dialogView);
                 checkBox = (CheckBox) dialogView.findViewById(R.id.dialog_check_box);
-                final AlertDialog deleteDialog = dialog.create();
+                deleteDialog = dialog.create();
                 deleteDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.argb(100, 200, 200, 200)));
                 deleteDialog.show();
-
                 confirmDelete.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -127,7 +124,7 @@ public class MainPageActivity extends Activity {
                         String bookName = iReaderDB.getBookName().get(position);
                         iReaderDB.deleteBook(bookName);
                         bookList = iReaderDB.getBookName();
-                        MainPageAdapter adapter = new MainPageAdapter(MainPageActivity.this);
+                        adapter = new MainPageAdapter(MainPageActivity.this);
                         listView.setAdapter(adapter);
                         deleteDialog.cancel();
                     }
@@ -178,13 +175,11 @@ public class MainPageActivity extends Activity {
             if(convertView == null){
                 convertView = inflater.inflate(R.layout.list_item,null);
                 holder = new ViewHolder();
-                holder.imageView = (ImageView) convertView.findViewById(R.id.book_icon);
                 holder.textView = (TextView) convertView.findViewById(R.id.book_name);
                 convertView.setTag(holder);
             }else{
                 holder = (ViewHolder)convertView.getTag();
             }
-            holder.imageView.setVisibility(View.VISIBLE);
             holder.textView.setText(bookList.get(position).replace(".txt",""));
             holder.textView.setTextColor(color[colorNumber]);
             return convertView;
@@ -192,7 +187,6 @@ public class MainPageActivity extends Activity {
 
     }
     private class ViewHolder{
-        private ImageView imageView;
         private TextView textView;
     }
     @Override
@@ -232,10 +226,11 @@ public class MainPageActivity extends Activity {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     colorNumber = position;
-                    listView.setAdapter(new MainPageAdapter(MainPageActivity.this));
+                    adapter = new MainPageAdapter(MainPageActivity.this);
+                    listView.setAdapter(adapter);
                     SharedPreferences.Editor editor = sp.edit();
                     editor.putInt("main_page_font_color", colorNumber);
-                    editor.commit();
+                    editor.apply();
                     setBackground.setTextColor(color[colorNumber]);
                     add.setTextColor(color[colorNumber]);
                 }

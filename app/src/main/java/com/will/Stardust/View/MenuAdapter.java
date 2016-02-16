@@ -1,9 +1,9 @@
-package com.will.ireader.View;
+package com.will.Stardust.View;
 
 import android.content.Context;
 import android.widget.SimpleAdapter;
 
-import com.will.ireader.R;
+import com.will.Stardust.R;
 
 import java.util.ArrayList;
 import java.util.HashMap;

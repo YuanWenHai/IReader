@@ -1,4 +1,4 @@
-package com.will.ireader.file;
+package com.will.Stardust.file;
 
 import android.app.Activity;
 import android.content.Context;
@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.SystemClock;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,9 +18,9 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.will.ireader.R;
-import com.will.ireader.activity.BookPage;
-import com.will.ireader.activity.MainPageActivity;
+import com.will.Stardust.R;
+import com.will.Stardust.activity.BookPage;
+import com.will.Stardust.activity.MainPageActivity;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -42,6 +41,8 @@ public class FileSelector extends Activity {
     private Boolean chooseFolder = false;
     private Map<Integer,Boolean> checkStatus;
     private IReaderDB iReaderDB;
+    private FileListAdapter fileListAdapter;
+    private ArrayList<String> pathList;
     int currentPosition;
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -53,7 +54,7 @@ public class FileSelector extends Activity {
         listView = (ListView) findViewById(R.id.file_selector_list);
         confirm = (Button) findViewById(R.id.file_selector_confirm);
         cancel = (Button) findViewById(R.id.file_selector_cancel);
-        FileListAdapter fileListAdapter = new FileListAdapter(this);
+        fileListAdapter = new FileListAdapter(this);
         listView.setAdapter(fileListAdapter);
         //ListView选项点击事件
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
@@ -65,17 +66,15 @@ public class FileSelector extends Activity {
                 } else if((Integer)dataList.get(position).get("icon")==R.drawable.icon_folder){
                     currentPath = (String) dataList.get(position).get("path");
                     getData();
-                    FileListAdapter adapter = new FileListAdapter(FileSelector.this);
-                    listView.setAdapter(adapter);
-                }else{
+                    fileListAdapter = new FileListAdapter(FileSelector.this);
+                    listView.setAdapter(fileListAdapter);
                     //将文件名与路径写入SQLiteDatabase中,过滤非txt文件
-                    if(((String)dataList.get(position).get("name")).toUpperCase().contains(".TXT")){
+                }else if(((String)dataList.get(position).get("name")).toUpperCase().contains(".TXT")){
                     iReaderDB.saveBook((String) dataList.get(position).get("name"), (String) dataList.get(position).get("path"));
                         Intent intent = new Intent(FileSelector.this,BookPage.class);
-                        intent.putExtra("name",(String)dataList.get(position).get("name"));
+                        intent.putExtra("name", (String) dataList.get(position).get("name"));
                         startActivity(intent);
-                    Log.e("OnItemClickListener",(String)dataList.get(position).get("path"));
-                }}
+                }
             }
         });
         //listview长按事件，转换到多选checkBox模式
@@ -84,8 +83,8 @@ public class FileSelector extends Activity {
         public boolean onItemLongClick(AdapterView<?> arg0,View view,int position,long id){
                 currentPosition = position;
                 chooseFolder = true;
-                FileListAdapter adapter = new FileListAdapter(FileSelector.this);
-                listView.setAdapter(adapter);
+                fileListAdapter= new FileListAdapter(FileSelector.this);
+                listView.setAdapter(fileListAdapter);
                 listView.setSelection(currentPosition);
                 return true;
             }
@@ -94,13 +93,12 @@ public class FileSelector extends Activity {
         confirm.setOnClickListener(new View.OnClickListener(){
             @Override
         public void onClick(View view ){
+                pathList = new ArrayList<String>();
                 for(int i =0;i<checkStatus.size();i++){
                     //以checkBox的选定状况为判定条件，通过在getData中为Dir与File设定的不同图标，判定其类别，并存入不同的表格
                     if(checkStatus.get(i)){
                         if((Integer)dataList.get(i).get("icon")==R.drawable.icon_folder) {
-                            String dirName = (String) dataList.get(i).get("name");
-                            String dirPath = (String) dataList.get(i).get("path");
-                            iReaderDB.saveDir(dirName, dirPath);
+                            pathList.add((String) dataList.get(i).get("path"));
                             //只添加.txt文件
                         }else if(((String)dataList.get(i).get("name")).toUpperCase().contains(".TXT")){
                             String bookName = (String) dataList.get(i).get("name");
@@ -115,10 +113,9 @@ public class FileSelector extends Activity {
                 public void run (){
                         SystemClock.sleep(50);
                             File file;
-                                List<String> list = iReaderDB.getDirPath();
-                                if(list.size() > 0){
-                                for(int i =0;i<list.size();i++){
-                                    file = new File(list.get(i));
+                                if(pathList.size() > 0){
+                                for(int i =0;i<pathList.size();i++){
+                                    file = new File(pathList.get(i));
                                     File[] files = file.listFiles();
                                     if(files.length != 0){
                                     recursion(files);
@@ -157,15 +154,15 @@ public class FileSelector extends Activity {
     private void getData(){
         File file = new File(currentPath);
         List<Map<String,Object>> list  = new ArrayList<Map<String,Object>>();
-        Map<String,Object> map = null;
+        Map<String,Object> map;
         File[] files = file.listFiles();
         for(int i = 0;i<files.length;i++){
             map = new HashMap<String,Object>();
-            if(files[i].isDirectory()&&!files[i].getName().contains(".")){
+            if(files[i].isDirectory()&&(files[i].getName().charAt(0) )!= '.'){
                 map.put("name",files[i].getName());
                 map.put("path",files[i].getPath());
                 map.put("icon",R.drawable.icon_folder);
-            }else if(/*!files[i].isDirectory()&& */files[i].getName().charAt(0) != '.'){
+            }else if(files[i].getName().charAt(0) != '.'){
                 map.put("name",files[i].getName());
                 map.put("path",files[i].getPath());
                 map.put("icon",R.drawable.icon_doc);
@@ -216,15 +213,16 @@ public class FileSelector extends Activity {
             holder.imageView.setImageResource((Integer)dataList.get(position).get("icon"));
             //长按--多选开关
             if(chooseFolder){
+                holder.checkBox.setChecked(checkStatus.get(position));
                 holder.checkBox.setVisibility(View.VISIBLE);
-                holder.checkBox.setOnClickListener(new View.OnClickListener(){
+                holder.checkBox.setOnClickListener(new View.OnClickListener() {
                     @Override
                     //通过click事件，修改checkBox状态记录器内容
-                public void onClick(View v){
-                        if(checkStatus.get(position)){
-                            checkStatus.put(position,false);
-                        }else{
-                            checkStatus.put(position,true);
+                    public void onClick(View v) {
+                        if (checkStatus.get(position)) {
+                            checkStatus.put(position, false);
+                        } else {
+                            checkStatus.put(position, true);
                         }
                     }
                 });
@@ -243,8 +241,8 @@ public class FileSelector extends Activity {
         //如果当前是多选模式，back返回默认模式
         if(chooseFolder){
             chooseFolder = false;
-            FileListAdapter adapter = new FileListAdapter(this);
-            listView.setAdapter(adapter);
+            fileListAdapter = new FileListAdapter(this);
+            listView.setAdapter(fileListAdapter);
             //如果当前是根目录，back正常返回MainPage
         }else if(currentPath.equals(rootPath)){
             super.onBackPressed();
@@ -253,9 +251,8 @@ public class FileSelector extends Activity {
             File file = new File(currentPath);
             currentPath = file.getParent();
             getData();
-            Log.e("onBackPressed",currentPosition+"");
-            FileListAdapter adapter = new FileListAdapter(FileSelector.this);
-            listView.setAdapter(adapter);
+            fileListAdapter= new FileListAdapter(FileSelector.this);
+            listView.setAdapter(fileListAdapter);
             listView.setSelection(currentPosition);
 
         }

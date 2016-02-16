@@ -1,4 +1,4 @@
-package com.will.ireader.View;
+package com.will.Stardust.View;
 
 import android.content.Context;
 import android.graphics.Bitmap;

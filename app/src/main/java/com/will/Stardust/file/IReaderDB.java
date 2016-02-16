@@ -1,4 +1,4 @@
-package com.will.ireader.file;
+package com.will.Stardust.file;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -37,21 +37,12 @@ public class IReaderDB {
         contentValues.put("book_path",path);
         db.insert("BookList",null,contentValues);
     }}
-    public void saveDir(String name,String path){
-        getDir();
-        if(!dirPath.contains(path)){
-            ContentValues values = new ContentValues();
-            values.put("dir_name",name);
-            values.put("dir_path",path);
-            db.insert("DirList",null,values);
-        }
-    }
     //查询文件内容，并为savebook提供path查询，避免重复数据存入表中
     private void getBook(){
         Cursor cursor;
         bookName = new ArrayList<String>();
         bookPath = new ArrayList<String>();
-         cursor = db.query("BookList",null,null,null,null,null,null);
+        cursor = db.query("BookList",null,null,null,null,null,null);
         if(cursor.moveToFirst()) {
             do {
                 bookName.add(cursor.getString(cursor.getColumnIndex("book_name")));
@@ -62,44 +53,12 @@ public class IReaderDB {
             cursor.close();
         }
             }
-
-
-    //查询目录内容
-    private void getDir(){
-        dirName = new ArrayList<String>();
-        dirPath = new ArrayList<String>();
-
-            Cursor cursor = db.query("DirList",null,null,null,null,null,null);
-            if(cursor.moveToFirst()) {
-                do {
-                    dirName.add(cursor.getString(cursor.getColumnIndex("dir_name")));
-                    dirPath.add(cursor.getString(cursor.getColumnIndex("dir_path")));
-                } while (cursor.moveToNext());
-
-            }
-        if(cursor != null){
-            cursor.close();
-        }
-    }
-
-
     public ArrayList<String> getBookName(){
         getBook();
         return bookName;
     }
-    public ArrayList<String> getBookPath(){
-        getBook();
-        return bookPath;
-    }
-    public ArrayList<String> getDirName(){
-        return dirName;
-    }
-    public ArrayList<String> getDirPath(){
-        getDir();
-        return dirPath;
-    }
     public void deleteBook(String name){
-        db.delete("BookList","book_name=?",new String[]{name});
+        db.delete("BookList", "book_name=?", new String[]{name});
     }
     public String getPath(String name){
         String path = "";
@@ -111,10 +70,11 @@ public class IReaderDB {
 
         return path;
     }
-    public void saveBookChapter(String bookName,String chapterName){
+    public void saveBookChapter(String bookName,String chapterName,int chapterPosition){
         ContentValues values = new ContentValues();
         values.put("book_name",bookName);
         values.put("chapter_name",chapterName);
+        values.put("chapter_position",chapterPosition);
         db.insert("Bookmark", null, values);
     }
     public String[]getBookChapter(String bookName){
@@ -129,6 +89,19 @@ public class IReaderDB {
         }
         cursor.close();
         return  list.toArray(new String[list.size()]);
+    }
+    public ArrayList<Integer> getChapterPosition(String bookName){
+        ArrayList<Integer> list = new ArrayList<Integer>();
+        int position;
+        Cursor cursor = db.query("Bookmark", null, "book_name=?", new String[]{bookName}, null, null, null);
+        if(cursor.moveToFirst()){
+            do{
+                position = cursor.getInt(cursor.getColumnIndex("chapter_position"));
+                list.add(position);
+            }while(cursor.moveToNext());
+        }
+        cursor.close();
+        return  list;
     }
     public void deleteBookmark(String name){
         db.delete("Bookmark","book_name=?",new String[]{name});
