@@ -6,7 +6,7 @@
         android:layout_width="wrap_content"
         android:layout_height="50dp"
         android:id="@+id/bookmark_item"
-        android:textSize="25sp"
+        android:textSize="24sp"
         android:paddingLeft="25dp"
         android:gravity="bottom"
         android:singleLine="true"/>

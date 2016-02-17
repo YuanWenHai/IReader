@@ -3,6 +3,7 @@ package com.will.Stardust.activity;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -54,7 +55,7 @@ public class MainPageActivity extends Activity {
     private Button setBackground;
     private final int GET_IMAGE = 1;
     private SharedPreferences sp;
-    private AlertDialog customDialog;
+    private Dialog customDialog;
     private Button customButton;
     private GridView customGridView;
     private String backgroundImage = "";
@@ -214,13 +215,14 @@ public class MainPageActivity extends Activity {
     }
     private void initializeCustomDialog(){
         if(customDialog ==null){
-            customDialog = new AlertDialog.Builder(this).create();
+            customDialog = new Dialog(this);
+            customDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
             View view = View.inflate(this, R.layout.main_page_custom, null);
             customButton = (Button) view.findViewById(R.id.main_page_custom_button);
             customGridView = (GridView) view.findViewById(R.id.main_page_custom_grid_view);
             customGridView.setSelector(new ColorDrawable(Color.TRANSPARENT));
             customGridView.setAdapter(new ColorAdapter(this));
-            customDialog.setView(view);
+            customDialog.setContentView(view);
             customDialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.argb(100, 200, 200, 200)));
             customGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
@@ -256,8 +258,8 @@ public class MainPageActivity extends Activity {
             BufferedInputStream bi = new BufferedInputStream(is);
             BufferedOutputStream bo = new BufferedOutputStream(new FileOutputStream(dir+"/"+"image"));
             byte[] temp = new byte[1024];
-            int length = 0;
-            while((length =bi.read(temp)) > 0) {
+
+            while((bi.read(temp)) > 0) {
                 bo.write(temp);
             }
             bi.close();

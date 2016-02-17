@@ -40,7 +40,7 @@ public class PageFactory {
     private Paint myPaint;
     private int begin;//当前阅读的字节数_开始
     private int end;//当前阅读的字节数_结束
-    private MappedByteBuffer mappedFile;//映射到内存中的文件
+    private static MappedByteBuffer mappedFile;//映射到内存中的文件
     private RandomAccessFile randomFile;//关闭Random流时使用
     private Vector<String> content = new Vector<String>();
     private Bitmap pageBackground;
@@ -49,7 +49,7 @@ public class PageFactory {
     private String keyWord = "章";
     private IReaderDB iReaderDB ;
     private String bookName;
-    private String wholeString = "none";
+    private static String wholeString = "none";
     private String code = "GBK";
     private boolean isNightMode = false;
     private int keywordPos = 0;
@@ -76,30 +76,30 @@ public class PageFactory {
     public PageFactory(){
     }
     public void openBook(String path,int[] position){
-        File file = new File(path);
-        mapperFileLength = (int)file.length();
-        try {
-            randomFile = new RandomAccessFile(file, "r");
-            mappedFile = randomFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, (long) mapperFileLength);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
         begin = position[0];
         end = position[1];
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                byte[] bookByte = new byte[mapperFileLength];
-                for(int i = 0;i<mapperFileLength;i++){
-                    bookByte[i] = mappedFile.get(i);
-                }
-                try{
-                    wholeString = new String(bookByte,code);
-                }catch(UnsupportedEncodingException e){
-                    e.printStackTrace();
-                }
+        File file = new File(path);
+        mapperFileLength = (int) file.length();
+            try {
+                randomFile = new RandomAccessFile(file, "r");
+                mappedFile = randomFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, (long) mapperFileLength);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        }).start();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    byte[] bookByte = new byte[mapperFileLength];
+                    for (int i = 0; i < mapperFileLength; i++) {
+                        bookByte[i] = mappedFile.get(i);
+                    }
+                    try {
+                        wholeString = new String(bookByte, code);
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
     }
     //向后读取一个段落，返回二进制数组
     private byte[] readParagraphForward( int end){

@@ -57,7 +57,7 @@ public class BookmarkPage extends Activity implements AdapterView.OnItemClickLis
         sp = getSharedPreferences("config", MODE_PRIVATE);
         factory = new PageFactory();
         initializeList();
-        factory.initializeBook(bookPath);
+        //factory.initializeBook(bookPath);
         list = (ListView) findViewById(R.id.bookmark_list_view);
         bookmarkAdapter = new MyAdapter(this);
         list.setAdapter(bookmarkAdapter);
@@ -95,6 +95,7 @@ public class BookmarkPage extends Activity implements AdapterView.OnItemClickLis
                 broadcast.putExtra("pos", pos);
                 sendBroadcast(broadcast);
                 startActivity(intent);
+                onDestroy();
             }
         });
     }
@@ -163,8 +164,7 @@ public class BookmarkPage extends Activity implements AdapterView.OnItemClickLis
         Intent intent = new Intent(this,BookPage.class);
         intent.putExtra("name", bookName);
         startActivity(intent);
-        finish();
-
+        onDestroy();
     }
     @Override
     public void onDestroy(){

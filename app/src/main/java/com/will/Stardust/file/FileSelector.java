@@ -197,7 +197,7 @@ public class FileSelector extends Activity {
             return null;
         }
         public View getView(final int position,View convertView,ViewGroup parent){
-            ViewHolder holder = null;
+            ViewHolder holder;
             if(convertView == null){
                 convertView = inflater.inflate(R.layout.file_selector_item,null);
                 holder = new ViewHolder();
@@ -244,17 +244,17 @@ public class FileSelector extends Activity {
             fileListAdapter = new FileListAdapter(this);
             listView.setAdapter(fileListAdapter);
             //如果当前是根目录，back正常返回MainPage
-        }else if(currentPath.equals(rootPath)){
-            super.onBackPressed();
-            //否则，即是处于子目录层，通过currentPath得到父目录，重新getData，刷新当前界面
         }else{
             File file = new File(currentPath);
             currentPath = file.getParent();
-            getData();
-            fileListAdapter= new FileListAdapter(FileSelector.this);
-            listView.setAdapter(fileListAdapter);
-            listView.setSelection(currentPosition);
-
+            if(currentPath != null) {
+                getData();
+                fileListAdapter = new FileListAdapter(FileSelector.this);
+                listView.setAdapter(fileListAdapter);
+                listView.setSelection(currentPosition);
+            }else{
+                super.onBackPressed();
+            }
         }
     }
 

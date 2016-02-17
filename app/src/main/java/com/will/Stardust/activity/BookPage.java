@@ -2,6 +2,7 @@ package com.will.Stardust.activity;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -59,7 +60,7 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
     private String bookPath;
     private int[] position = {0,0};
     private IReaderDB iReaderDB  = IReaderDB.getInstance(this);
-    private AlertDialog menuDialog;//菜单dialog
+    private Dialog menuDialog;//菜单dialog
     private View menuView;//菜单view;
     private Button increaseFont;//增大字体按钮
     private Button decreaseFont;//减小字体按钮
@@ -68,10 +69,10 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
     private EditText progressEditText;//进度跳转输入栏
     private EditText searchEditText;
     private TextView fontSizeDescription;//当前字体大小描述
-    private AlertDialog fontChangeDialog;//调整字体大小dialog
+    private Dialog fontChangeDialog;//调整字体大小dialog
     private AlertDialog progressChangeDialog;//进度跳转dialog
     private AlertDialog searchDialog;
-    private AlertDialog chooseFontColorDialog;
+    private Dialog chooseFontColorDialog;
     private Button searchContent;
     private Button nextContent;
     private Button confirmSkip;
@@ -155,9 +156,9 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
         switch(position){
             case DIRECTORY:
                 Intent intent  = new Intent(BookPage.this,BookmarkPage.class);
-                intent.putExtra("name",bookName);
+                intent.putExtra("name", bookName);
                 intent.putExtra("path", bookPath);
-                intent.putExtra("begin",pageFactory.getBegin());
+                intent.putExtra("begin", pageFactory.getBegin());
                 startActivity(intent);
                 menuDialog.cancel();
                 break;
@@ -304,7 +305,6 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
     @Override
     public void onDestroy(){
         unregisterReceiver(myReceiver);
-        pageFactory.closeStream();
         super.onDestroy();
     }
     private void initializeProgressDialog(){
@@ -322,13 +322,14 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
     private void initializeFontDialog(){
         //改变字体
         if(fontSizeDescription == null){
-            fontChangeDialog = new AlertDialog.Builder(this).create();
+            fontChangeDialog = new Dialog(this);
+            fontChangeDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
             View changeFontView = View.inflate(this,R.layout.change_font_view,null);
             increaseFont = (Button) changeFontView.findViewById(R.id.increase_font);
             decreaseFont = (Button) changeFontView.findViewById(R.id.decrease_font);
             fontSizeDescription = (TextView) changeFontView.findViewById(R.id.font_size);
             fontSizeDescription.setText("当前字号" + pageFactory.getFontSize());
-            fontChangeDialog.setView(changeFontView);
+            fontChangeDialog.setContentView(changeFontView);
             fontChangeDialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
             increaseFont.setOnClickListener(myListener);
             decreaseFont.setOnClickListener((myListener));
@@ -341,9 +342,10 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
             GridView gridView = (GridView) menuView.findViewById(R.id.menu_grid_view);
             gridView.setAdapter(adapter.getMenuAdapter(this));
             gridView.setSelector(new ColorDrawable(Color.TRANSPARENT));
-            menuDialog = new AlertDialog.Builder(this).create();
+            menuDialog = new Dialog(this);
+            menuDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
             //menuDialog = new AlertDialog(this,R.style.dialog);
-            menuDialog.setView(menuView);
+            menuDialog.setContentView(menuView);
             menuDialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
             gridView.setOnItemClickListener(this);
         }
@@ -410,7 +412,8 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
     }
     private void initializeChooseFontColorDialog(){
         if(chooseFontColorDialog == null){
-        chooseFontColorDialog = new AlertDialog.Builder(this).create();
+        chooseFontColorDialog = new Dialog(this);
+        chooseFontColorDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         View view = View.inflate(this,R.layout.main_page_custom,null);
         GridView colorGridView = (GridView)view.findViewById(R.id.main_page_custom_grid_view);
         chooseBackground = (Button) view.findViewById(R.id.main_page_custom_button);
@@ -434,7 +437,7 @@ public class BookPage extends Activity implements AdapterView.OnItemClickListene
                 menuDialog.cancel();
             }
         });
-        chooseFontColorDialog.setView(view);
+        chooseFontColorDialog.setContentView(view);
     }
     }
     }
