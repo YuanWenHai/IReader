@@ -244,20 +244,16 @@ public class FileSelector extends Activity {
             fileListAdapter = new FileListAdapter(this);
             listView.setAdapter(fileListAdapter);
             //如果当前是根目录，back正常返回MainPage
-        }else{
+        }else if (!currentPath.equals(rootPath)) {
             File file = new File(currentPath);
             currentPath = file.getParent();
-            if(currentPath != null) {
-                getData();
-                fileListAdapter = new FileListAdapter(FileSelector.this);
-                listView.setAdapter(fileListAdapter);
-                listView.setSelection(currentPosition);
-            }else{
+            getData();
+            fileListAdapter = new FileListAdapter(FileSelector.this);
+            listView.setAdapter(fileListAdapter);
+            listView.setSelection(currentPosition);
+        }
+            else{
                 super.onBackPressed();
             }
         }
-    }
-
-
-
 }

@@ -10,7 +10,6 @@
         android:layout_width="match_parent"
         android:layout_marginTop="20dp"
         android:layout_height="60dp"
-        android:layout_marginLeft="25dp"
         android:textColor="#000000"
         android:textSize="22sp" />
 
@@ -28,7 +27,7 @@
             android:id="@+id/dialog_check_box"/>
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_marginLeft="15dp"
@@ -41,6 +40,18 @@
         android:layout_height="wrap_content"
         android:id="@+id/confirm_delete"
         android:text="确认删除"
+        android:textSize="20sp"
+        android:textColor="@android:color/black"
+        android:background="#70c8c8c8"/>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="10dp"
+        android:background="#00000000"/>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/multiple_delete"
+        android:text="批量删除"
         android:textSize="20sp"
         android:textColor="@android:color/black"
         android:background="#70c8c8c8"/>

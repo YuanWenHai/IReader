@@ -57,8 +57,14 @@ public class IReaderDB {
         getBook();
         return bookName;
     }
-    public void deleteBook(String name){
+    public void deleteBook(final String name){
         db.delete("BookList", "book_name=?", new String[]{name});
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                deleteBookmark(name);
+            }
+        }).start();
     }
     public String getPath(String name){
         String path = "";

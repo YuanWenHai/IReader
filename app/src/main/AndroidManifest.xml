@@ -21,10 +21,13 @@
         </activity>
         <activity android:name="com.will.Stardust.activity.MainPageActivity"
             android:launchMode="singleTask"></activity>
-        <activity android:name="com.will.Stardust.file.FileSelector"></activity>
+        <activity android:name="com.will.Stardust.file.FileSelector"
+            android:launchMode="singleTask"></activity>
         <activity android:name="com.will.Stardust.activity.BookPage"
             android:launchMode="singleTask"></activity>
         <activity android:name="com.will.Stardust.activity.BookmarkPage"
+            android:launchMode="singleTask"></activity>
+        <activity android:name=".activity.DeleteBooks"
             android:launchMode="singleTask"></activity>
     </application>
 

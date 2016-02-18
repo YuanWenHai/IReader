@@ -2,7 +2,6 @@ package com.will.Stardust.activity;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
@@ -59,7 +58,7 @@ public class MainPageActivity extends Activity {
     private Button customButton;
     private GridView customGridView;
     private String backgroundImage = "";
-    private AlertDialog deleteDialog;
+    private Dialog deleteDialog;
     private int colorNumber;
     MainPageAdapter adapter;
     private final int[] color = new int[]{Color.WHITE,Color.RED,Color.LTGRAY,Color.BLACK,Color.BLUE,
@@ -104,14 +103,15 @@ public class MainPageActivity extends Activity {
         listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> arg0, View view, final int position, long id) {
-                AlertDialog.Builder dialog = new AlertDialog.Builder(MainPageActivity.this);
+                deleteDialog = new Dialog(MainPageActivity.this);
+                deleteDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
                 View dialogView = View.inflate(MainPageActivity.this,R.layout.delete_dialog,null);
                 TextView textView = (TextView) dialogView.findViewById(R.id.dialog_content);
                 textView.setText("确定删除" + bookList.get(position) + "?");
                 Button confirmDelete = (Button) dialogView.findViewById(R.id.confirm_delete);
-                dialog.setView(dialogView);
+                Button multipleDelete = (Button) dialogView.findViewById(R.id.multiple_delete);
+                deleteDialog.setContentView(dialogView);
                 checkBox = (CheckBox) dialogView.findViewById(R.id.dialog_check_box);
-                deleteDialog = dialog.create();
                 deleteDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.argb(100, 200, 200, 200)));
                 deleteDialog.show();
                 confirmDelete.setOnClickListener(new View.OnClickListener() {
@@ -128,6 +128,14 @@ public class MainPageActivity extends Activity {
                         adapter = new MainPageAdapter(MainPageActivity.this);
                         listView.setAdapter(adapter);
                         deleteDialog.cancel();
+                    }
+                });
+                multipleDelete.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        deleteDialog.cancel();
+                        Intent intent = new Intent(MainPageActivity.this,DeleteBooks.class);
+                        startActivity(intent);
                     }
                 });
 
