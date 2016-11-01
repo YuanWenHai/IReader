@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGER"/>
 
     <application
+        android:name=".base.MyApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic"
         android:label="@string/app_name"
@@ -12,23 +13,13 @@
         android:theme="@style/AppTheme"
         android:largeHeap="true">
         <activity
-            android:name="com.will.Stardust.activity.LogoActivity"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+            android:name="com.will.Stardust.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name="com.will.Stardust.activity.MainPageActivity"
-            android:launchMode="singleTask"></activity>
-        <activity android:name="com.will.Stardust.file.FileSelector"
-            android:launchMode="singleTask"></activity>
-        <activity android:name="com.will.Stardust.activity.BookPage"
-            android:launchMode="singleTask"></activity>
-        <activity android:name="com.will.Stardust.activity.BookmarkPage"
-            android:launchMode="singleTask"></activity>
-        <activity android:name=".activity.DeleteBooks"
-            android:launchMode="singleTask"></activity>
+        <activity android:name=".file_searcher.FileSearcherActivity"/>
     </application>
 
 </manifest>
