@@ -34,7 +34,7 @@ public class DBHelper {
         return instance;
     }
     public List<Book> getAllBook(){
-        Cursor cursor = db.rawQuery("SELECT * FROM book order by _id desc",null);
+        Cursor cursor = db.rawQuery("SELECT * FROM book order by id desc",null);
         List<Book> list = new ArrayList<>();
         Book book;
         while (cursor.moveToNext()){
@@ -61,26 +61,52 @@ public class DBHelper {
         cursor.close();
         return list;
     }
-    public void saveChapters(List<BookDetail> list){
-        ContentValues cv;
-        for(BookDetail bookDetail :list){
-            cv = new ContentValues();
-            cv.put("book_name",bookDetail.getBookName());
-            cv.put("chapter_name",bookDetail.getChapterName());
-            cv.put("chapter_number",bookDetail.getChapterNumber());
-            cv.put("chapter_position",bookDetail.getChapterPosition());
-            db.insert("chapter","book_name",cv);
-        }
+    public void saveChapters(final List<BookDetail> list){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ContentValues cv;
+                for(BookDetail bookDetail :list){
+                    cv = new ContentValues();
+                    cv.put("book_name",bookDetail.getBookName());
+                    cv.put("chapter_name",bookDetail.getChapterName());
+                    cv.put("chapter_number",bookDetail.getChapterNumber());
+                    cv.put("chapter_position",bookDetail.getChapterPosition());
+                    db.insert("chapter","book_name",cv);
+                }
+            }
+        }).start();
     }
-    public void saveBook(Book book){
+    public void saveBook( Book book){
         ContentValues cv = new ContentValues();
         cv.put("book_name",book.getBookName());
         cv.put("book_path",book.getPath());
         db.insert("book","book,name",cv);
     }
-    public void saveBook(List<Book> list){
-        for(Book book : list){
-            saveBook(book);
-        }
+    public void saveBook(final List<Book> list){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for(final Book book : list){
+                    saveBook(book);
+                }
+            }
+        }).start();
+
+    }
+    public void deleteBookWithChapters(final Book book){
+        db.delete("book","book_name=?",new String[]{book.getBookName()});
+        db.delete("chapter","book_name=?",new String[]{book.getBookName()});
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                db.delete("book","book_name=?",new String[]{book.getBookName()});
+                db.delete("chapter","book_name=?",new String[]{book.getBookName()});
+            }
+        }).start();
+    }
+    public void clearAllData(){
+        db.delete("book",null,null);
+        db.delete("chapter",null,null);
     }
 }

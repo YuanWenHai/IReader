@@ -5,4 +5,6 @@
     <string name="add">添加</string>
     <string name="batch_delete">批量删除</string>
     <string name="search">搜索</string>
+    <string name="delete_all">删除全部</string>
+    <string name="remove_to_delete">左右滑动删除书籍</string>
 </resources>

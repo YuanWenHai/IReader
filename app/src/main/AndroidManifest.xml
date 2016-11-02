@@ -19,7 +19,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".file_searcher.FileSearcherActivity"/>
+        <activity android:name=".SearcherActivity"/>
     </application>
 
 </manifest>

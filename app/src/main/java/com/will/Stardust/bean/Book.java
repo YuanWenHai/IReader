@@ -25,4 +25,14 @@ public class Book {
     public String getPath(){
         return path;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if(o instanceof Book){
+            Book book = (Book) o;
+            return book.getBookName().equals(this.name) && book.getPath().equals(this.path);
+        }else{
+            return super.equals(o);
+        }
+    }
 }

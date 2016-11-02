@@ -10,4 +10,8 @@
         android:title="@string/batch_delete"
         android:id="@+id/menu_delete"
         app:showAsAction="never"/>
+    <item
+        android:title="@string/delete_all"
+        android:id="@+id/menu_delete_all"
+        app:showAsAction="never"/>
 </menu>
