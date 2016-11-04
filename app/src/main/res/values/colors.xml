@@ -2,8 +2,13 @@
 <resources>
     <color name="colorPrimary">#2196F3</color>
     <color name="colorPrimaryDark">#1E88E5</color>
+    <color name="colorPrimaryLight">#90CAF9</color>
+    <color name="colorPrimaryLightest">#E3F2FD</color>
     <color name="colorAccent">#FF4081</color>
     <color name= "transparent">#00000000</color>
-    <color name="blueGrey">#607D8B</color>
-    <color name="blueGreyDark">#607D8B</color>
+    <color name="blueGrey">#546E7A</color>
+    <color name="blueGreyDark">#455A64</color>
+    <color name="black">#0f0b02</color>
+    <color name="white">#fbf0d9</color>
+    <color name="pure_white">#FFFFFF</color>
 </resources>

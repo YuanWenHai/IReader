@@ -3,6 +3,7 @@ package com.will.Stardust.View;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.util.AttributeSet;
 import android.view.View;
 
 /**
@@ -12,6 +13,9 @@ public class PageView extends View {
     private Bitmap bit;
     public PageView(Context context){
         super(context);
+    }
+    public PageView(Context context, AttributeSet attr){
+        super(context,attr);
     }
     @Override
     protected void onDraw(Canvas canvas){

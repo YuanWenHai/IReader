@@ -34,13 +34,14 @@ public class DBHelper {
         return instance;
     }
     public List<Book> getAllBook(){
-        Cursor cursor = db.rawQuery("SELECT * FROM book order by id desc",null);
+        Cursor cursor = db.rawQuery("SELECT * FROM book order by access_time desc",null);
         List<Book> list = new ArrayList<>();
         Book book;
         while (cursor.moveToNext()){
             book = new Book();
             book.setBookName(cursor.getString(cursor.getColumnIndex("book_name")));
             book.setPath(cursor.getString(cursor.getColumnIndex("book_path")));
+            book.setAccessTime(cursor.getLong(cursor.getColumnIndex("access_time")));
             list.add(book);
         }
         cursor.close();
@@ -81,6 +82,7 @@ public class DBHelper {
         ContentValues cv = new ContentValues();
         cv.put("book_name",book.getBookName());
         cv.put("book_path",book.getPath());
+        cv.put("access_time",book.getAccessTime());
         db.insert("book","book,name",cv);
     }
     public void saveBook(final List<Book> list){
@@ -108,5 +110,10 @@ public class DBHelper {
     public void clearAllData(){
         db.delete("book",null,null);
         db.delete("chapter",null,null);
+    }
+    public void updateBookAccessTime(Book book){
+        ContentValues cv = new ContentValues();
+        cv.put("access_time",book.getAccessTime());
+        db.update("book",cv,"book_path=?",new String[]{book.getPath()});
     }
 }

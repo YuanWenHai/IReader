@@ -10,7 +10,6 @@ import com.will.Stardust.base.MyApplication;
 
 public class Util {
     private static Toast mToast;
-
     public static void makeToast(String message){
         if(mToast == null){
             mToast = Toast.makeText(MyApplication.getGlobalContext(),"",Toast.LENGTH_SHORT);

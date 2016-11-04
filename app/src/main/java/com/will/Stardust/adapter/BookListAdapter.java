@@ -11,7 +11,6 @@ import android.widget.TextView;
 import com.will.RemovableView;
 import com.will.Stardust.R;
 import com.will.Stardust.bean.Book;
-import com.will.Stardust.common.Util;
 import com.will.Stardust.db.DBHelper;
 
 import java.util.ArrayList;
@@ -28,6 +27,7 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.BookVi
     private int lastAnimatedIndex = -1;
     private TranslateAnimation animation;
     private boolean allowMove;
+    private ClickCallback mCallback;
     public BookListAdapter(Context context){
         data = DBHelper.getInstance().getAllBook();
         //data = getTestData();
@@ -60,8 +60,11 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.BookVi
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if(!allowMove){
-                        Util.makeToast("you clicked "+data.get(getAdapterPosition()).getBookName());
+                    if(mCallback != null && !allowMove){//如果为删除模式则屏蔽点击事件
+                        Book book = data.get(getAdapterPosition());
+                        mCallback.onClick(book);
+                        DBHelper.getInstance().updateBookAccessTime(book.setAccessTime(System.currentTimeMillis()));
+                        reloadData();
                     }
                 }
             });
@@ -74,7 +77,9 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.BookVi
             view.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View view) {
-                    Util.makeToast("long click");
+                    if(mCallback != null & !allowMove){
+                        mCallback.onLongClick();
+                    }
                     return true;
                 }
             });
@@ -141,4 +146,19 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.BookVi
     public boolean isAllowMove(){
         return allowMove;
     }
+
+    private void reloadData(){
+        data.clear();
+        data.addAll(DBHelper.getInstance().getAllBook());
+        notifyDataSetChanged();
+    }
+
+    public void setOnClickCallback(ClickCallback callback){
+        mCallback = callback;
+    }
+    public interface ClickCallback{
+        void onClick(Book book);
+        void onLongClick();
+    }
+
 }

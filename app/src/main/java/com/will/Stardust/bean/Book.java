@@ -1,30 +1,45 @@
 package com.will.Stardust.bean;
 
+import java.io.Serializable;
+
 /**
  * Created by will on 2016/10/29.
  */
 
-public class Book {
+public class Book implements Serializable{
     private String name,path;
+    private long accessTime = 0;
     public Book(){}
     public Book(String name,String path){
         this.name = name;
         this.path = path;
     }
 
-    public void setBookName(String name){
+    public Book setBookName(String name){
         this.name = name;
+        return this;
     }
     public String getBookName(){
         return  name;
     }
 
-    public void setPath(String path){
+    public Book setPath(String path){
         this.path = path;
+        return this;
     }
     public String getPath(){
         return path;
     }
+
+
+    public Book setAccessTime(long time){
+        accessTime = time;
+        return this;
+    }
+    public long getAccessTime(){
+        return accessTime;
+    }
+
 
     @Override
     public boolean equals(Object o) {

@@ -7,4 +7,7 @@
     <string name="search">搜索</string>
     <string name="delete_all">删除全部</string>
     <string name="remove_to_delete">左右滑动删除书籍</string>
+    <string name="night_mode">夜间模式</string>
+    <string name="change_font_size">字体大小</string>
+    <string name="change_progress">进度跳转</string>
 </resources>

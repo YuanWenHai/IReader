@@ -19,4 +19,16 @@
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
+    <style name="ToolbarPopThemeLight" parent="ThemeOverlay.AppCompat.Light">
+    </style>
+    <style name="ToolbarTheme" parent="ThemeOverlay.AppCompat.Dark">
+        <item name="android:textColorSecondary">@color/pure_white</item>
+    </style>
+    <style name="FABTheme" parent="Widget.Design.FloatingActionButton">
+        <item name="elevation">6dp</item>
+        <item name="rippleColor">@color/colorPrimaryLightest</item>
+        <item name="colorAccent">@color/colorPrimaryLight</item>
+        <item name="pressedTranslationZ">6dp</item>
+        <item name="android:scaleType">center</item>
+    </style>
 </resources>

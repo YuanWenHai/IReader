@@ -35,6 +35,18 @@ public class MainActivity extends BaseActivity {
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.main_recycler_view);
         recyclerView.setLayoutManager(new GridLayoutManager(this,3));
         mAdapter = new BookListAdapter(this);
+        mAdapter.setOnClickCallback(new BookListAdapter.ClickCallback() {
+            @Override
+            public void onClick(Book book) {
+                Intent intent = new Intent(MainActivity.this,ReadingActivity.class);
+                intent.putExtra("book",book);
+                startActivity(intent);
+            }
+            @Override
+            public void onLongClick() {
+                turnIntoMoveMode(true);
+            }
+        });
         recyclerView.setAdapter(mAdapter);
         toolbar = (Toolbar) findViewById(R.id.main_toolbar);
         setSupportActionBar(toolbar);
@@ -42,7 +54,7 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.toolbar_menu,menu);
+        getMenuInflater().inflate(R.menu.main_toolbar_menu,menu);
         return true;
     }
 
@@ -56,13 +68,9 @@ public class MainActivity extends BaseActivity {
                 break;
             case R.id.menu_delete:
                 if(mAdapter.isAllowMove()){
-                    mAdapter.allowMove(false);
-                   Util.makeToast("已退出删除模式");
-                    toolbar.setTitle(getResources().getString(R.string.app_name));
+                  turnIntoMoveMode(false);
                 }else{
-                    mAdapter.allowMove(true);
-                    Util.makeToast("进入删除模式，左右滑动书籍删除");
-                    toolbar.setTitle(getResources().getString(R.string.remove_to_delete));
+                   turnIntoMoveMode(true);
                 }
                 break;
             case R.id.menu_delete_all:
@@ -87,12 +95,21 @@ public class MainActivity extends BaseActivity {
     @Override
     public void onBackPressed() {
         if(mAdapter.isAllowMove()){
-            mAdapter.allowMove(false);
-            Util.makeToast("已退出删除模式");
-            toolbar.setTitle(getResources().getString(R.string.app_name));
+           turnIntoMoveMode(false);
         }else{
             super.onBackPressed();
         }
 
+    }
+    private void turnIntoMoveMode(boolean which){
+       if(which){
+           mAdapter.allowMove(true);
+           toolbar.setTitle(getResources().getString(R.string.remove_to_delete));
+           Util.makeToast("进入删除模式，左右滑动书籍删除");
+       }else{
+           mAdapter.allowMove(false);
+           toolbar.setTitle(getResources().getString(R.string.app_name));
+           Util.makeToast("已退出删除模式");
+       }
     }
 }

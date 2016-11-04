@@ -20,7 +20,8 @@
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:adjustViewBounds="true"
-                android:src="@drawable/book_red" />
+                android:src="@drawable/book_red"
+                android:paddingTop="8dp"/>
             <TextView
                 android:id="@+id/book_item_text"
                 android:layout_width="match_parent"

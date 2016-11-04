@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/page_menu_night_mode"
+        android:title="@string/night_mode"
+        android:icon="@drawable/ic_brightness_7_white_24dp"
+        app:showAsAction="always"/>
+    <item
+        android:id="@+id/page_menu_change_font_size"
+        android:title="@string/change_font_size"
+        android:icon="@drawable/ic_font_download_white_24dp"
+        app:showAsAction="always"/>
+    <group>
+        <item
+            android:id="@+id/page_menu_search"
+            android:title="@string/search"
+            android:icon="@drawable/ic_search_white_24dp"
+            app:showAsAction="never"/>
+        <item
+            android:id="@+id/page_menu_change_progress"
+            android:title="@string/change_progress"
+            app:showAsAction="never"/>
+    </group>
+</menu>
