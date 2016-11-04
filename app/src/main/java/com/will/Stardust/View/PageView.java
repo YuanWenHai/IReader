@@ -28,4 +28,9 @@ public class PageView extends View {
     public void setBitmap(Bitmap bitmap){
             bit = bitmap;
     }
+
+    @Override
+    public boolean isInEditMode() {
+        return true;
+    }
 }
