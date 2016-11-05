@@ -5,7 +5,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.will.Stardust.bean.Book;
-import com.will.Stardust.bean.BookDetail;
+import com.will.Stardust.bean.Chapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,32 +47,32 @@ public class DBHelper {
         cursor.close();
         return list;
     }
-    public List<BookDetail> getChapters(String bookName){
+    public List<Chapter> getChapters(String bookName){
         Cursor cursor = db.rawQuery("SELECT * FROM chapter WHERE book_name=?",new String[]{bookName});
-        List<BookDetail> list = new ArrayList<>();
-        BookDetail bookDetail;
+        List<Chapter> list = new ArrayList<>();
+        Chapter chapter;
         while (cursor.moveToNext()){
-            bookDetail = new BookDetail();
-            bookDetail.setBookName(cursor.getString(cursor.getColumnIndex("book_name")));
-            bookDetail.setChapterName(cursor.getString(cursor.getColumnIndex("chapter_name")));
-            bookDetail.setChapterNumber(cursor.getInt(cursor.getColumnIndex("chapter_number")));
-            bookDetail.setChapterPosition(cursor.getInt(cursor.getColumnIndex("chapter_position")));
-            list.add(bookDetail);
+            chapter = new Chapter();
+            chapter.setBookName(cursor.getString(cursor.getColumnIndex("book_name")));
+            chapter.setChapterName(cursor.getString(cursor.getColumnIndex("chapter_name")));
+            chapter.setChapterNumber(cursor.getInt(cursor.getColumnIndex("chapter_number")));
+            chapter.setChapterPosition(cursor.getInt(cursor.getColumnIndex("chapter_position")));
+            list.add(chapter);
         }
         cursor.close();
         return list;
     }
-    public void saveChapters(final List<BookDetail> list){
+    public void saveChapters(final List<Chapter> list){
         new Thread(new Runnable() {
             @Override
             public void run() {
                 ContentValues cv;
-                for(BookDetail bookDetail :list){
+                for(Chapter chapter :list){
                     cv = new ContentValues();
-                    cv.put("book_name",bookDetail.getBookName());
-                    cv.put("chapter_name",bookDetail.getChapterName());
-                    cv.put("chapter_number",bookDetail.getChapterNumber());
-                    cv.put("chapter_position",bookDetail.getChapterPosition());
+                    cv.put("book_name", chapter.getBookName());
+                    cv.put("chapter_name", chapter.getChapterName());
+                    cv.put("chapter_number", chapter.getChapterNumber());
+                    cv.put("chapter_position", chapter.getChapterPosition());
                     db.insert("chapter","book_name",cv);
                 }
             }

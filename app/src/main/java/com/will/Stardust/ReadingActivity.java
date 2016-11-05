@@ -12,6 +12,8 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
+import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.will.Stardust.View.PageView;
@@ -32,13 +34,12 @@ public class ReadingActivity extends BaseActivity implements Animation.Animation
     private BottomSheetBehavior<CardView> bottomSheetBehavior;
     private boolean isAnimating;
     private boolean isActionBarHidden = true;
+    private int originPosition = -1;
     @Override
     protected void onCreate( Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.reading_activity_layout);
-        CardView bottomSheet = (CardView) findViewById(R.id.reading_activity_bottom_sheet);
-        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
         Book book = (Book) getIntent().getSerializableExtra("book");
 
         pageView = (PageView) findViewById(R.id.reading_activity_view);
@@ -57,7 +58,6 @@ public class ReadingActivity extends BaseActivity implements Animation.Animation
 
         pageView.setSystemUiVisibility(View.INVISIBLE);
         mPageFactory = new PageFactory(pageView);
-
         mPageFactory.openBook(book);
         mPageFactory.printPage();
 
@@ -72,6 +72,11 @@ public class ReadingActivity extends BaseActivity implements Animation.Animation
                     }
                     if(!isActionBarHidden){
                         changeActionState();
+                        return true;
+                    }
+                    if(bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED){
+                        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                        originPosition = -1;
                         return true;
                     }
                     if(motionEvent.getX() > pageView.getWidth()* 0.66f){
@@ -139,8 +144,15 @@ public class ReadingActivity extends BaseActivity implements Animation.Animation
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
-        mPageFactory.close();
+        if(!isActionBarHidden){
+           changeActionState();
+        } else if(bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED){
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            originPosition = -1;
+        } else{
+            super.onBackPressed();
+            mPageFactory.close();
+        }
     }
 
     @Override
@@ -158,11 +170,12 @@ public class ReadingActivity extends BaseActivity implements Animation.Animation
                 break;
             case R.id.page_menu_change_font_size:
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-
+                changeActionState();
                 break;
             case R.id.page_menu_change_progress:
                 break;
             case R.id.page_menu_search:
+                new ChapterFactory().getChapters(mPageFactory.getStringFromDiskFile());
                 break;
         }
 
@@ -186,6 +199,9 @@ public class ReadingActivity extends BaseActivity implements Animation.Animation
     }
     private static final String FONT_STR = "当前字号：";
     private void iniBottomSheetMenu(){
+        CardView bottomSheet = (CardView) findViewById(R.id.reading_activity_bottom_sheet);
+        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
+        //change font
         FloatingActionButton increaseFont = (FloatingActionButton) findViewById(R.id.reading_activity_increase_font);
         FloatingActionButton decreaseFont = (FloatingActionButton) findViewById(R.id.reading_activity_decrease_font);
         final TextView fontText = (TextView) findViewById(R.id.reading_activity_font_text);
@@ -202,6 +218,40 @@ public class ReadingActivity extends BaseActivity implements Animation.Animation
             public void onClick(View view) {
                 mPageFactory.decreaseFontSize();
                 fontText.setText((FONT_STR + mPageFactory.getFontSize()));
+            }
+        });
+        //change progress
+        final SeekBar progressBar = (SeekBar) findViewById(R.id.reading_activity_seek_bar);
+        final TextView progressText = (TextView) findViewById(R.id.reading_activity_progress_text);
+        final ImageView resetProgress = (ImageView) findViewById(R.id.reading_activity_progress_reset);
+        progressBar.setProgress(mPageFactory.getProgress());
+        progressText.setText("当前进度："+mPageFactory.getProgress()+"%");
+        progressBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                progressText.setText("当前进度："+i+"%");
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                int i = mPageFactory.setProgress(seekBar.getProgress());
+                if(originPosition < 0){
+                    originPosition = i;
+                }
+            }
+        });
+        resetProgress.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+               if(originPosition >= 0){
+                   mPageFactory.setPosition(originPosition);
+                   progressText.setText("当前进度："+mPageFactory.getProgress()+"%");
+                   progressBar.setProgress(mPageFactory.getProgress());
+               }
             }
         });
     }

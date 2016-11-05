@@ -4,7 +4,7 @@ package com.will.Stardust.bean;
  * Created by will on 2016/10/29.
  */
 
-public class BookDetail extends Book {
+public class Chapter extends Book {
     private String chapterName;
     private int chapterPosition,chapterNumber;
 

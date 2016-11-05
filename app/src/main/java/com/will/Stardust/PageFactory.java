@@ -11,14 +11,18 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.BatteryManager;
 import android.util.DisplayMetrics;
+import android.util.Log;
 
 import com.will.Stardust.View.PageView;
 import com.will.Stardust.bean.Book;
 import com.will.Stardust.common.SPHelper;
 import com.will.Stardust.file.IReaderDB;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.nio.MappedByteBuffer;
@@ -41,7 +45,7 @@ public class PageFactory {
     private int pageHeight,pageWidth;//文字排版页面尺寸
     private int lineNumber;//行数
     private int lineSpace = 3;//行距;
-    private int mapperFileLength;//映射到内存中Book的字节数
+    private int fileLength;//映射到内存中Book的字节数
     private int fontSize ;
     private static final int margin = 30;//文字显示距离屏幕实际尺寸的偏移量
     private Paint myPaint;
@@ -100,15 +104,43 @@ public class PageFactory {
     }
     public PageFactory(){
     }
+    public String getStringFromFile(){
+        String string ="";
+        byte[] bookByte = new byte[fileLength];
+        for(int i = 0; i< fileLength; i++){
+            bookByte[i] = mappedFile.get(i);
+        }
+        try{
+            string = new String(bookByte,code);
+        }catch(UnsupportedEncodingException e){
+            e.printStackTrace();
+        }
+        return string;
+    }
+    public String getStringFromDiskFile(){
+        StringBuilder builder = new StringBuilder();
+        try{
+            InputStreamReader isr = new InputStreamReader(new FileInputStream(new File(book.getPath())),"GBK");
+            BufferedReader reader = new BufferedReader(isr);
+            String temp;
+            while ((temp = reader.readLine()) != null){
+                builder.append(temp);
+            }
+        }catch ( Exception f){
+            f.printStackTrace();
+            Log.e("error","!");
+        }
+        return builder.toString();
+    }
     public void openBook(Book book){
         this.book = book;
         begin = spHelper.getBookmarkStart(book.getBookName());
         end = spHelper.getBookmarkEnd(book.getBookName());
         File file = new File(book.getPath());
-        mapperFileLength = (int) file.length();
+        fileLength = (int) file.length();
             try {
                 randomFile = new RandomAccessFile(file, "r");
-                mappedFile = randomFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, (long) mapperFileLength);
+                mappedFile = randomFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, (long) fileLength);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -118,7 +150,7 @@ public class PageFactory {
 
         byte b0;
         int i = end;
-        while(i < mapperFileLength){
+        while(i < fileLength){
             b0 = mappedFile.get(i++);
             if(b0 == 0x0a){
                 break;
@@ -155,7 +187,7 @@ public class PageFactory {
     //获取后一页的内容
 private void pageDown(){
     String strParagraph = "";
-    while((content.size()<lineNumber) && (end<mapperFileLength)){
+    while((content.size()<lineNumber) && (end< fileLength)){
         byte[] byteTemp = readParagraphForward(end);
         end += byteTemp.length;
         try{
@@ -234,11 +266,11 @@ private void pageDown(){
                 y += fontSize+lineSpace;
                 mCanvas.drawText(line,margin,y,myPaint);
             }
-            float percent = (float) begin /mapperFileLength*100;
+            float percent = (float) begin / fileLength *100;
             DecimalFormat format = new DecimalFormat("#0.00");
-            String strPercent = format.format(percent);
-            int length = (int ) myPaint.measureText(strPercent);
-            mCanvas.drawText(strPercent + "%", (screenWidth - length) / 2, screenHeight - margin, myPaint);
+            String readingProgress = format.format(percent)+"%";
+            int length = (int ) myPaint.measureText(readingProgress);
+            mCanvas.drawText(readingProgress, (screenWidth - length) / 2, screenHeight - margin, myPaint);
 
             //显示时间
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm", Locale.CHINA);
@@ -274,7 +306,7 @@ private void pageDown(){
         mContext.registerReceiver(batteryReceiver,intentFilter);
     }
     public void nextPage(){
-        if(end >= mapperFileLength){
+        if(end > fileLength){
             return;
         }else{
             content.clear();
@@ -284,7 +316,7 @@ private void pageDown(){
         printPage();
     }
     public void prePage(){
-        if(begin <= 0){
+        if(begin < 0){
             return;
         }else{
             content.clear();
@@ -318,22 +350,11 @@ private void pageDown(){
     public int getFontSize(){
         return fontSize;
     }
-    public void setPercent(float percent){
-        if(percent <= 100){
-        float position = percent*mapperFileLength/100;
-        end = (int) position;
-        if(end ==0) {
-            nextPage();
-        }else{
-            nextPage();
-            prePage();
-            nextPage();
-        }
-        }
-    }
+
     public void setPosition(int position){
         end = position;
         nextPage();
+        prePage();
     }
     public ArrayList<String> getChapter(){
         ArrayList<String> list = new ArrayList<String>();
@@ -354,6 +375,21 @@ private void pageDown(){
             }
         }while(index != -1 && key != -1);
         return list;
+    }
+    public int getProgress(){
+        return begin*100/ fileLength;
+    }
+    public int setProgress(int i){
+        int origin = end;
+        end = fileLength * i/100;
+        if(end == 0){
+            nextPage();
+        }else{
+            nextPage();
+            prePage();
+            nextPage();
+        }
+        return origin;
     }
     public ArrayList<Integer>getChapterPositions(){
         return chapterPositions;
