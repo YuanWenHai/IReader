@@ -175,7 +175,7 @@ public class ReadingActivity extends BaseActivity implements Animation.Animation
             case R.id.page_menu_change_progress:
                 break;
             case R.id.page_menu_search:
-                new ChapterFactory().getChapters(mPageFactory.getStringFromDiskFile());
+
                 break;
         }
 

@@ -11,18 +11,14 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.BatteryManager;
 import android.util.DisplayMetrics;
-import android.util.Log;
 
 import com.will.Stardust.View.PageView;
 import com.will.Stardust.bean.Book;
 import com.will.Stardust.common.SPHelper;
 import com.will.Stardust.file.IReaderDB;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.nio.MappedByteBuffer;
@@ -103,34 +99,6 @@ public class PageFactory {
         registerBatteryReceiver();
     }
     public PageFactory(){
-    }
-    public String getStringFromFile(){
-        String string ="";
-        byte[] bookByte = new byte[fileLength];
-        for(int i = 0; i< fileLength; i++){
-            bookByte[i] = mappedFile.get(i);
-        }
-        try{
-            string = new String(bookByte,code);
-        }catch(UnsupportedEncodingException e){
-            e.printStackTrace();
-        }
-        return string;
-    }
-    public String getStringFromDiskFile(){
-        StringBuilder builder = new StringBuilder();
-        try{
-            InputStreamReader isr = new InputStreamReader(new FileInputStream(new File(book.getPath())),"GBK");
-            BufferedReader reader = new BufferedReader(isr);
-            String temp;
-            while ((temp = reader.readLine()) != null){
-                builder.append(temp);
-            }
-        }catch ( Exception f){
-            f.printStackTrace();
-            Log.e("error","!");
-        }
-        return builder.toString();
     }
     public void openBook(Book book){
         this.book = book;
