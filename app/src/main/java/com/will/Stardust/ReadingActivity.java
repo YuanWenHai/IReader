@@ -1,5 +1,6 @@
 package com.will.Stardust;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
@@ -19,7 +20,10 @@ import android.widget.TextView;
 import com.will.Stardust.View.PageView;
 import com.will.Stardust.base.BaseActivity;
 import com.will.Stardust.bean.Book;
+import com.will.Stardust.chapter.ChapterActivity;
+import com.will.Stardust.chapter.ChapterFactory;
 import com.will.Stardust.common.SPHelper;
+import com.will.Stardust.common.Util;
 
 /**
  * Created by will on 2016/11/3.
@@ -35,12 +39,13 @@ public class ReadingActivity extends BaseActivity implements Animation.Animation
     private boolean isAnimating;
     private boolean isActionBarHidden = true;
     private int originPosition = -1;
+    private Book book;
     @Override
     protected void onCreate( Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.reading_activity_layout);
-        Book book = (Book) getIntent().getSerializableExtra("book");
+        book = (Book) getIntent().getSerializableExtra("book");
 
         pageView = (PageView) findViewById(R.id.reading_activity_view);
         actionBar = findViewById(R.id.reading_activity_action_bar);
@@ -168,14 +173,18 @@ public class ReadingActivity extends BaseActivity implements Animation.Animation
             case R.id.page_menu_night_mode:
                 setNightMode(!SPHelper.getInstance().isNightMode());
                 break;
-            case R.id.page_menu_change_font_size:
+            case R.id.page_menu_chapter:
+
+                if(ChapterFactory.getInstance(book).getChapter()){
+                    Intent intent = new Intent(this, ChapterActivity.class);
+                    startActivity(intent);
+                }else{
+                    Util.makeToast("未发现章节");
+                }
+                break;
+            case R.id.page_menu_overflow:
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
                 changeActionState();
-                break;
-            case R.id.page_menu_change_progress:
-                break;
-            case R.id.page_menu_search:
-
                 break;
         }
 
@@ -201,6 +210,7 @@ public class ReadingActivity extends BaseActivity implements Animation.Animation
     private void iniBottomSheetMenu(){
         CardView bottomSheet = (CardView) findViewById(R.id.reading_activity_bottom_sheet);
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
+        bottomSheetBehavior.setPeekHeight(0);
         //change font
         FloatingActionButton increaseFont = (FloatingActionButton) findViewById(R.id.reading_activity_increase_font);
         FloatingActionButton decreaseFont = (FloatingActionButton) findViewById(R.id.reading_activity_decrease_font);

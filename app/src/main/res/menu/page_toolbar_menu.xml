@@ -7,19 +7,13 @@
         android:icon="@drawable/ic_brightness_7_white_24dp"
         app:showAsAction="always"/>
     <item
-        android:id="@+id/page_menu_change_font_size"
-        android:title="@string/change_font_size"
-        android:icon="@drawable/ic_font_download_white_24dp"
+        android:id="@+id/page_menu_chapter"
+        android:title="@string/chapter"
+        android:icon="@drawable/ic_account_balance_white_24dp"
         app:showAsAction="always"/>
-    <group>
-        <item
-            android:id="@+id/page_menu_search"
-            android:title="@string/search"
-            android:icon="@drawable/ic_search_white_24dp"
-            app:showAsAction="never"/>
-        <item
-            android:id="@+id/page_menu_change_progress"
-            android:title="@string/change_progress"
-            app:showAsAction="never"/>
-    </group>
+    <item
+        android:title="@string/overflow"
+        android:id="@+id/page_menu_overflow"
+        android:icon="@drawable/ic_more_vert_white_24dp"
+        app:showAsAction="always"/>
 </menu>

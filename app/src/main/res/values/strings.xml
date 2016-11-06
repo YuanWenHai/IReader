@@ -10,4 +10,6 @@
     <string name="night_mode">夜间模式</string>
     <string name="change_font_size">字体大小</string>
     <string name="change_progress">进度跳转</string>
+    <string name="chapter">章节目录</string>
+    <string name="overflow">更多</string>
 </resources>

@@ -21,6 +21,7 @@
         </activity>
         <activity android:name=".SearcherActivity"/>
         <activity android:name=".ReadingActivity"/>
+        <activity android:name=".chapter.ChapterActivity"/>
     </application>
 
 </manifest>

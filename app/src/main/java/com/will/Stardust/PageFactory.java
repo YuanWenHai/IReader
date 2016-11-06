@@ -165,7 +165,7 @@ private void pageDown(){
         }
         strParagraph = strParagraph.replaceAll("\r\n","  ");
         strParagraph = strParagraph.replaceAll("\n", "  ");
-        while(strParagraph.length()>0){
+        while(strParagraph.length   ()>0){
             int size = myPaint.breakText(strParagraph,true,pageWidth,null);
             content.add(strParagraph.substring(0,size));
             strParagraph = strParagraph.substring(size);
