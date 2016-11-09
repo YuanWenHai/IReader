@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.BatteryManager;
 import android.util.DisplayMetrics;
+import android.util.Log;
 
 import com.will.Stardust.View.PageView;
 import com.will.Stardust.bean.Book;
@@ -29,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -72,7 +72,7 @@ public class PageFactory {
     private PageView mView;
     private Canvas mCanvas;
     private String batteryLevel = "";
-    private List<String> content = new ArrayList<>();
+    private ArrayList<String> content = new ArrayList<>();
     private BroadcastReceiver batteryReceiver;
     private Book book;
     public PageFactory(PageView view){
@@ -112,7 +112,37 @@ public class PageFactory {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        list = new ArrayList<>();
+        byte[] bytes = new byte[fileLength];
+        mappedFile.get(bytes);
+        for(int i=0;i<fileLength;i++){
+            if(bytes[i] == 0x0a){
+                list.add(i);
+            }
+        }
+        Log.e("total",list.size()+"");
+        setPosition(list.get(230624));
     }
+    int binary_search(ArrayList<Integer> list, int len, int goal)
+    {
+        int low = 0;
+        int high = len -1;
+        while (low <= high)
+        {
+            int middle = (high - low) / 2 + low; // 直接使用(high + low) / 2 可能导致溢出
+            if (list.get(middle) == goal)
+                return middle;
+                //在左半边
+            else if (list.get(middle) > goal)
+                high = middle - 1;
+                //在右半边
+            else
+                low = middle + 1;
+        }
+        //没找到
+        return -1;
+    }
+    ArrayList<Integer> list;
     //向后读取一个段落，返回二进制数组
     private byte[] readParagraphForward( int end){
 
@@ -184,11 +214,10 @@ private void pageDown(){
     }
 }
     //上翻页
-    private List<String>pageUp(){
+    private  void pageUp(){
         String strParagraph = "";
-        Vector<String> lines = new Vector<String>();
-        while(lines.size()<lineNumber && begin>0){
-            Vector<String> parLines = new Vector<String>();
+        List<String> tempList = new ArrayList<>();
+        while(tempList.size()<lineNumber && begin>0){
             byte[] byteTemp = readParagraphBack(begin);
             begin -= byteTemp.length;
             try{
@@ -200,27 +229,22 @@ private void pageDown(){
             strParagraph = strParagraph.replaceAll("\n","  ");
             while(strParagraph.length() > 0){
                 int size = myPaint.breakText(strParagraph,true,pageWidth,null);
-                parLines.add(strParagraph.substring(0, size));
+                tempList.add(strParagraph.substring(0, size));
                 strParagraph = strParagraph.substring(size);
+                if(tempList.size() >= lineNumber){
+                    break;
+                }
             }
-            lines.addAll(0,parLines);
-            while(lines.size()>lineNumber){
-             try{
-                 begin += lines.get(0).getBytes(code).length;
-                 lines.remove(0);
-             }catch(UnsupportedEncodingException e){
-                 e.printStackTrace();
-             }
+            if(strParagraph.length() > 0){
+              try{
+                  begin+= strParagraph.getBytes(code).length;
+              }catch (UnsupportedEncodingException u){
+                  u.printStackTrace();
+              }
             }
         }
-        end = begin;//通过以上一系列运行，得到向上翻页后的第一个position，并将其赋给end，再调用pageDown方法。
-        return lines;
     }
     public void printPage(){
-        if( content.size() == 0){
-            end = begin;
-            pageDown();
-        }
         if(content.size()>0){
             int y = margin;
             if(isNightMode){
@@ -288,7 +312,8 @@ private void pageDown(){
             return;
         }else{
             content.clear();
-             pageUp();
+            pageUp();
+            end = begin;
             pageDown();
         }
         printPage();
@@ -320,9 +345,10 @@ private void pageDown(){
     }
 
     public void setPosition(int position){
-        end = position;
-        nextPage();
+        begin = position;
         prePage();
+        end = begin;
+        nextPage();
     }
     public ArrayList<String> getChapter(){
         ArrayList<String> list = new ArrayList<String>();

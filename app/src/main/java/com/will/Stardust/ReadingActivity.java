@@ -64,7 +64,7 @@ public class ReadingActivity extends BaseActivity implements Animation.Animation
         pageView.setSystemUiVisibility(View.INVISIBLE);
         mPageFactory = new PageFactory(pageView);
         mPageFactory.openBook(book);
-        mPageFactory.printPage();
+        mPageFactory.nextPage();
 
 
         pageView.setOnTouchListener(new View.OnTouchListener() {

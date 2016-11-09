@@ -84,6 +84,7 @@ public class ChapterFactory {
 
     //这里。。挺蠢的
     public boolean getChapter() {
+        findChapter();
         List<Chapter> list = DBHelper.getInstance().getChapters(book.getBookName());
         if (list.size() == 0) {
             String book = getBookFromDisk();
@@ -142,6 +143,27 @@ public class ChapterFactory {
             Util.makeToast("未发现" + book.getBookName() + "文件");
         } catch (IOException i) {
             i.printStackTrace();
+        }
+    }
+    public void findChapter(){
+        StringBuilder builder = new StringBuilder();
+        int i = 0;
+        try {
+            InputStreamReader isr = new InputStreamReader(new FileInputStream(new File(book.getPath())), "GBK");
+            BufferedReader reader = new BufferedReader(isr);
+            String temp;
+            while ((temp = reader.readLine()) != null) {
+
+               if(temp.contains("第")&&temp.contains("章 ")){
+                   Log.e(temp,"position is:"+i);
+               }
+                i++;
+            }
+        } catch (FileNotFoundException f) {
+            f.printStackTrace();
+            Util.makeToast("未发现" + book.getBookName() + "文件");
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
