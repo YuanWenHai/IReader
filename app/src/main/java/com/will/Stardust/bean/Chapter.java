@@ -6,7 +6,7 @@ package com.will.Stardust.bean;
 
 public class Chapter extends Book {
     private String chapterName;
-    private int chapterPosition,chapterNumber;
+    private int chapterBytePosition, chapterParagraphPosition;
 
 
     public void setChapterName(String chapterName){
@@ -16,17 +16,17 @@ public class Chapter extends Book {
         return  chapterName;
     }
 
-    public void setChapterPosition(int chapterPosition){
-        this.chapterPosition = chapterPosition;
+    public void setChapterBytePosition(int chapterBytePosition){
+        this.chapterBytePosition = chapterBytePosition;
     }
-    public int getChapterPosition(){
-        return chapterPosition;
+    public int getChapterBytePosition(){
+        return chapterBytePosition;
     }
 
-    public void setChapterNumber(int chapterNumber){
-        this.chapterNumber = chapterNumber;
+    public void setChapterParagraphPosition(int chapterParagraphPosition){
+        this.chapterParagraphPosition = chapterParagraphPosition;
     }
-    public int getChapterNumber(){
-        return chapterNumber;
+    public int getChapterParagraphPosition(){
+        return chapterParagraphPosition;
     }
 }

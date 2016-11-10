@@ -15,9 +15,15 @@
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
         app:theme="@style/ToolbarTheme"/>
-    <com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView
-        android:id="@+id/chapter_activity_recycler_view"
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/chapter_activity_refresh_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:fastScrollThumbColor="@color/colorPrimaryLight"/>
+        android:layout_height="match_parent">
+        <com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView
+            android:id="@+id/chapter_activity_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:fastScrollThumbColor="@color/colorPrimaryLight"
+            app:fastScrollPopupBackgroundSize="10dp" />
+    </android.support.v4.widget.SwipeRefreshLayout>
 </LinearLayout>

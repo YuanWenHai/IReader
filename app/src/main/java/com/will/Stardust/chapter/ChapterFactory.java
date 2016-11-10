@@ -1,7 +1,10 @@
 package com.will.Stardust.chapter;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
+import com.will.Stardust.PageFactory;
 import com.will.Stardust.bean.Book;
 import com.will.Stardust.bean.Chapter;
 import com.will.Stardust.common.Util;
@@ -13,11 +16,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.RandomAccessFile;
+import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Created by will on 2016/11/5.
@@ -29,141 +30,113 @@ public class ChapterFactory {
     private static final String REGULAR_HUI = "第[0-9零一二两三四五六七八九十百千万 ]+回 .*?\\s";
 
 
-    private static ChapterFactory instance;
-
 
     private Book book;
+    private MappedByteBuffer mappedByteBuffer;
+    private int mappedFileLength;
+    private String code;
+    private String keyword = "章 ";
+    private ArrayList<Chapter> chapters;
+    private final ArrayList<Integer> positions = new ArrayList<>();
 
-    private List<Chapter> list;
+    //private volatile boolean stopThread;
+    private Handler mHandler = new Handler(Looper.getMainLooper());
 
-    public static ChapterFactory getInstance(Book book) {
-        if (instance == null) {
-            instance = new ChapterFactory(book);
-        } else {
-            instance.book = book;
-        }
-        return instance;
+    public ChapterFactory() {
+        book = PageFactory.getInstance().getBook();
+        mappedByteBuffer = PageFactory.getInstance().getMappedFile();
+        mappedFileLength = PageFactory.getInstance().getFileLength();
+        code = PageFactory.getInstance().getCode();
     }
 
-    public static ChapterFactory getInstance() {
-        return instance;
-    }
-
-    private ChapterFactory(Book book) {
-        this.book = book;
-    }
-
-    private List<Chapter> searchChapters(String string, String regularEx) {
-        List<Chapter> list = new ArrayList<>();
-        Pattern regularPattern = Pattern.compile(regularEx);
-        Matcher matcher = regularPattern.matcher(string);
-        Chapter chapter;
-        Log.e("ready to find", "!");
-        while (matcher.find()) {
-            Log.e("find", matcher.group());
-            chapter = new Chapter();
-            chapter.setBookName(book.getBookName());
-            chapter.setChapterName(matcher.group());
-            chapter.setChapterPosition(matcher.start());
-            list.add(chapter);
-        }/*
-        if(matcher.find()){
-            Log.e("group count is",matcher.groupCount()+"");
-            Log.e("group is",matcher.group());
-            for(int i=0;i<matcher.groupCount();i++){
-                chapter = new Chapter();
-                chapter.setBookName(book.getBookName());
-                chapter.setChapterName(matcher.group(i));
-                chapter.setChapterPosition(matcher.start(i));
-                chapter.setChapterNumber(i+1);
-                list.add(chapter);
-            }
-        }*/
-        return list;
-    }
-
-    //这里。。挺蠢的
-    public boolean getChapter() {
-        findChapter();
-        List<Chapter> list = DBHelper.getInstance().getChapters(book.getBookName());
-        if (list.size() == 0) {
-            String book = getBookFromDisk();
-            list = searchChapters(book, REGULAR_ZHANG);
-            if (list.size() == 0) {
-                list = (searchChapters(book, REGULAR_JIE));
-                if (list.size() == 0) {
-                    list = (searchChapters(book, REGULAR_HUI));
+    public void getChapter(final LoadCallback callback) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                chapters = DBHelper.getInstance().getChapters(book.getBookName());
+                if (chapters.size() != 0) {
+                    mHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onFinishLoad(chapters);
+                        }
+                    });
+                }else{
+                    Log.e("loading","chapters");
+                    findParagraphInBytePosition();
+                    findChapterParagraphPosition(callback);
                 }
             }
-            if (list.size() > 0) {
-                DBHelper.getInstance().saveChapters(list);
+        }).start();
+
+    }
+
+    private void findChapterParagraphPosition(final LoadCallback callback){
+            int i = 0;
+            try {
+                InputStreamReader isr = new InputStreamReader(new FileInputStream(new File(book.getPath())),code);
+                BufferedReader reader = new BufferedReader(isr);
+                String temp;
+                Chapter chapter;
+                Log.e("chapters","start loading");
+                while ((temp = reader.readLine()) != null) {
+
+                    if(temp.contains("第")&&temp.contains(keyword)){
+                        chapter = new Chapter();
+                        chapter.setChapterName(temp);
+                        chapter.setBookName(book.getBookName());
+                        chapter.setChapterParagraphPosition(i);
+                        chapters.add(chapter);
+                        //Log.e("chapter name",chapter.getChapterName());
+                    }
+                    i++;
+                }
+                Log.e("chapters","load completely");
+
+
+                synchronized (positions){
+                    Log.e("start","insert data");
+                    for(int a=0;a<chapters.size();a++){
+                        chapter = chapters.get(a);
+                        chapter.setChapterBytePosition(positions.get(chapter.getChapterParagraphPosition()-1));
+                        //Log.e("chapter position",chapter.getChapterBytePosition()+"");
+                    }
+                }
+                Log.e("insert","completely");
+                mHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onFinishLoad(chapters);
+                    }
+                });
+                DBHelper.getInstance().saveChapters(chapters);
+            } catch (FileNotFoundException f) {
+                f.printStackTrace();
+                Util.makeToast("未发现" + book.getBookName() + "文件");
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        }
-        this.list = list;
-        return list.size() > 0;
-    }
 
-    public List<Chapter> getChapterList() {
-        return list;
     }
-
-    private String getBookFromDisk() {
-        StringBuilder builder = new StringBuilder();
-        try {
-            InputStreamReader isr = new InputStreamReader(new FileInputStream(new File(book.getPath())), "GBK");
-            BufferedReader reader = new BufferedReader(isr);
-            String temp;
-            while ((temp = reader.readLine()) != null) {
-                builder.append(temp);
-            }
-        } catch (FileNotFoundException f) {
-            f.printStackTrace();
-            Util.makeToast("未发现" + book.getBookName() + "文件");
-        } catch (IOException i) {
-            i.printStackTrace();
-        }
-        return builder.toString();
-    }
-
-    public void recycle() {
-        instance = null;
-    }
-
-    public  void getChapterFromFile() {
-        try {
-            RandomAccessFile randomAccessFile = new RandomAccessFile(new File(book.getPath()),"r");
-            String temp;
-            if ((temp = randomAccessFile.readLine())!= null){
-                Log.e("read",temp);
-            }else{
-                Log.e("read","is null!");
-            }
-        } catch (FileNotFoundException f) {
-            f.printStackTrace();
-            Util.makeToast("未发现" + book.getBookName() + "文件");
-        } catch (IOException i) {
-            i.printStackTrace();
-        }
-    }
-    public void findChapter(){
-        StringBuilder builder = new StringBuilder();
-        int i = 0;
-        try {
-            InputStreamReader isr = new InputStreamReader(new FileInputStream(new File(book.getPath())), "GBK");
-            BufferedReader reader = new BufferedReader(isr);
-            String temp;
-            while ((temp = reader.readLine()) != null) {
-
-               if(temp.contains("第")&&temp.contains("章 ")){
-                   Log.e(temp,"position is:"+i);
+    private void findParagraphInBytePosition(){
+       new Thread(new Runnable() {
+           @Override
+           public void run() {
+               synchronized (positions){
+                   Log.e("positions","start loading");
+                   byte[] bytes = new byte[mappedFileLength];
+                   mappedByteBuffer.get(bytes);
+                   for(int i=0;i<mappedFileLength;i++){
+                       if(bytes[i] == 0x0a){
+                           positions.add(i);
+                       }
+                   }
+                   Log.e("positions","load completely");
                }
-                i++;
-            }
-        } catch (FileNotFoundException f) {
-            f.printStackTrace();
-            Util.makeToast("未发现" + book.getBookName() + "文件");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+           }
+       }).start();
+    }
+    interface LoadCallback {
+        void onFinishLoad(List<Chapter> list);
     }
 }

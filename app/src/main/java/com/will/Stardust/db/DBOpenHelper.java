@@ -18,11 +18,11 @@ public class DBOpenHelper extends SQLiteOpenHelper {
             "book_name text," +
             "book_path text," +
             "access_time long)";
-    public static final String CREATE_BOOKMARK = "create table chapter (" +
+    public static final String CREATE_CHAPTER = "create table chapter (" +
             "id integer primary key autoincrement," +
             "book_name text," +
-            "chapter_number integer," +
-            "chapter_position integer," +
+            "chapter_paragraph_position integer," +
+            "chapter_byte_position integer," +
             "chapter_name)";
     public DBOpenHelper(){
         super(MyApplication.getGlobalContext(),NAME,null,VERSION);
@@ -30,13 +30,13 @@ public class DBOpenHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db){
         db.execSQL(CREATE_BOOK_LIST);
-        db.execSQL(CREATE_BOOKMARK);
+        db.execSQL(CREATE_CHAPTER);
     }
     @Override
     public void onUpgrade(SQLiteDatabase db,int oldVersion,int newVersion){
         if(newVersion > oldVersion){
             db.execSQL(CREATE_BOOK_LIST);
-            db.execSQL(CREATE_BOOKMARK);
+            db.execSQL(CREATE_CHAPTER);
         }
     }
 

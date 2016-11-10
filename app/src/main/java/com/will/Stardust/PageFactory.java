@@ -11,12 +11,10 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.BatteryManager;
 import android.util.DisplayMetrics;
-import android.util.Log;
 
 import com.will.Stardust.View.PageView;
 import com.will.Stardust.bean.Book;
 import com.will.Stardust.common.SPHelper;
-import com.will.Stardust.file.IReaderDB;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,8 +28,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Created by Will on 2016/2/2.
@@ -47,25 +43,11 @@ public class PageFactory {
     private Paint myPaint;
     private int begin;//当前阅读的字节数_开始
     private int end;//当前阅读的字节数_结束
-    private static MappedByteBuffer mappedFile;//映射到内存中的文件
+    private MappedByteBuffer mappedFile;//映射到内存中的文件
     private RandomAccessFile randomFile;//关闭Random流时使用
 
-    private Bitmap pageBackground;
-    private int position1 = 0;
-    private int position2 = 0;
-    private String keyWord = "章";
-    private IReaderDB iReaderDB ;
-    private String bookName;
-    private static String wholeString = "none";
     private String code = "GBK";
-    private int keywordPos = 0;
-    private int nowPos;
-    private String searchKey = "";
     private Context mContext;
-    private int batteryLevelStringWidth;
-    private ArrayList<Integer> chapterPositions;
-    public String test;
-    public int stringPosition;
 
     private SPHelper spHelper = SPHelper.getInstance();
     private boolean isNightMode = spHelper.isNightMode();
@@ -75,7 +57,24 @@ public class PageFactory {
     private ArrayList<String> content = new ArrayList<>();
     private BroadcastReceiver batteryReceiver;
     private Book book;
-    public PageFactory(PageView view){
+
+    private static PageFactory instance;
+
+    public static PageFactory getInstance(PageView view,Book book){
+        if(instance == null){
+            synchronized (PageFactory.class){
+                if(instance == null){
+                    instance = new PageFactory(view);
+                    instance.openBook(book);
+                }
+            }
+        }
+        return instance;
+    }
+    public static PageFactory getInstance(){
+        return instance;
+    }
+    private PageFactory(PageView view){
         DisplayMetrics metrics = new DisplayMetrics();
         mContext = view.getContext();
         mView = view;
@@ -98,9 +97,8 @@ public class PageFactory {
 
         registerBatteryReceiver();
     }
-    public PageFactory(){
-    }
-    public void openBook(Book book){
+
+    private void openBook(Book book){
         this.book = book;
         begin = spHelper.getBookmarkStart(book.getBookName());
         end = spHelper.getBookmarkEnd(book.getBookName());
@@ -112,37 +110,7 @@ public class PageFactory {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        list = new ArrayList<>();
-        byte[] bytes = new byte[fileLength];
-        mappedFile.get(bytes);
-        for(int i=0;i<fileLength;i++){
-            if(bytes[i] == 0x0a){
-                list.add(i);
-            }
-        }
-        Log.e("total",list.size()+"");
-        setPosition(list.get(230624));
     }
-    int binary_search(ArrayList<Integer> list, int len, int goal)
-    {
-        int low = 0;
-        int high = len -1;
-        while (low <= high)
-        {
-            int middle = (high - low) / 2 + low; // 直接使用(high + low) / 2 可能导致溢出
-            if (list.get(middle) == goal)
-                return middle;
-                //在左半边
-            else if (list.get(middle) > goal)
-                high = middle - 1;
-                //在右半边
-            else
-                low = middle + 1;
-        }
-        //没找到
-        return -1;
-    }
-    ArrayList<Integer> list;
     //向后读取一个段落，返回二进制数组
     private byte[] readParagraphForward( int end){
 
@@ -279,9 +247,6 @@ private void pageDown(){
             mCanvas.drawText(batteryLevel, screenWidth - margin - batteryLevelStringWidth, screenHeight - margin, myPaint);
             mView.invalidate();
 
-
-            //mCanvas.drawText(batteryLevel,screenWidth-margin-batteryLevelStringWidth,screenHeight-margin,myPaint);
-
         }
     }
     private void registerBatteryReceiver(){
@@ -298,7 +263,7 @@ private void pageDown(){
         mContext.registerReceiver(batteryReceiver,intentFilter);
     }
     public void nextPage(){
-        if(end > fileLength){
+        if(end >= fileLength){
             return;
         }else{
             content.clear();
@@ -308,7 +273,7 @@ private void pageDown(){
         printPage();
     }
     public void prePage(){
-        if(begin < 0){
+        if(begin <= 0){
             return;
         }else{
             content.clear();
@@ -319,7 +284,7 @@ private void pageDown(){
         printPage();
     }
     public void saveBookmark(){
-        SPHelper.getInstance().setBookmarkEnd(book.getBookName(),end);
+        SPHelper.getInstance().setBookmarkEnd(book.getBookName(),begin);
         SPHelper.getInstance().setBookmarkStart(book.getBookName(),begin);
     }
     public void setFontSize(int size){
@@ -343,32 +308,18 @@ private void pageDown(){
     public int getFontSize(){
         return fontSize;
     }
+    public int getFileLength(){
+        return fileLength;
+    }
+    public MappedByteBuffer getMappedFile(){
+        return mappedFile;
+    }
 
     public void setPosition(int position){
-        begin = position;
-        prePage();
-        end = begin;
+        //begin = position;
+        //prePage();
+        end = position;
         nextPage();
-    }
-    public ArrayList<String> getChapter(){
-        ArrayList<String> list = new ArrayList<String>();
-        chapterPositions = new ArrayList<Integer>();
-        Pattern pattern = Pattern.compile("^[0-9零一二三四五六七八九十百千万 ]+$");
-        int index = 0;
-        int key;
-
-        do{
-            index = wholeString.indexOf("第",index+1);
-            key = wholeString.indexOf(keyWord,index);
-            if(index != -1 && key != -1){
-                Matcher matcher = pattern.matcher(wholeString.substring(index+1,key));
-                if(matcher.matches()){
-                    list.add(wholeString.substring(index,wholeString.indexOf("\n",index)));
-                    chapterPositions.add(index);
-                }
-            }
-        }while(index != -1 && key != -1);
-        return list;
     }
     public int getProgress(){
         return begin*100/ fileLength;
@@ -376,6 +327,9 @@ private void pageDown(){
     public int setProgress(int i){
         int origin = end;
         end = fileLength * i/100;
+        if(end == fileLength){
+            end--;
+        }
         if(end == 0){
             nextPage();
         }else{
@@ -385,110 +339,27 @@ private void pageDown(){
         }
         return origin;
     }
-    public ArrayList<Integer>getChapterPositions(){
-        return chapterPositions;
-    }
-    public void setKeyWord(String keyWord){
-        this.keyWord = keyWord;
-    }
-    private int getByte(String string){
-        byte[] bytes;
-        int num = 0;
-        try{
 
-            bytes = string.getBytes(code);
-            num = bytes.length;
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-        return num;
-    }
-    public int getPositionFromChapter(String chapterName){
-        int position = wholeString.indexOf(chapterName);
-        String temp = wholeString.substring(0,position);
-        int pos = 0;
-        try{
-            byte[] bytes =temp.getBytes(code);
-            pos = bytes.length;
-        }catch (UnsupportedEncodingException u){
-            u.printStackTrace();
-        }
-        return pos;
-    }
-    private int getPositionFromKeyword(String keyword,int p){
-        stringPosition = wholeString.indexOf(keyword,p+1);
-        if(stringPosition != -1) {
-            String temp = wholeString.substring(0, stringPosition);
-            int pos = 0;
-
-            try {
-                byte[] bytes = temp.getBytes(code);
-                pos = bytes.length;
-            } catch (UnsupportedEncodingException u) {
-                u.printStackTrace();
-            }
-            return pos;
-        }else{
-            return stringPosition;
-        }
-    }
     public void setNightMode(boolean which){
         isNightMode = which;
         printPage( );
     }
-    public int searchContent(Canvas canvas,String key,String mode){
-        if(mode.equals("content")) {
-            searchKey = key;
-            keywordPos = getPositionFromKeyword(key,stringPosition);
-            if(keywordPos != -1){
-            setPosition(keywordPos);
-            }else{
-                return keywordPos;
-            }
-        }else{
-            keywordPos = getPositionFromKeyword(searchKey,stringPosition);
-            if(keywordPos != -1) {
-                setPosition(keywordPos);
-            }else{
-                return keywordPos;
-            }
-        }
-        printPage();
-        return 0;
+    public Book getBook(){
+        return book;
     }
-    public void setFontColor(Canvas canvas,int color){
-        myPaint.setColor(color);
-        printPage();
-    }
-    public int getCurrentWordNumber(int position){
-        if(position>0){
-        String temp = "";
-        byte[] bytes = new byte[position];
-        for(int i = 0;i<position;i++){
-            bytes[i] = mappedFile.get(i);
-        }
-        try{
-            temp = new String(bytes,"GBK");
-        }catch(UnsupportedEncodingException u){
-            u.printStackTrace();
-        }
-        int number = temp.length();
-        return  number;
-        }
-        return -1;
-    }
-    public int getBegin(){
-        return begin;
+    public String getCode(){
+        return code;
     }
 
-
-    public void close(){
-        mappedFile = null;
-        mContext.unregisterReceiver(batteryReceiver);
-        try{
-            randomFile.close();
-        }catch (IOException i){
-            i.printStackTrace();
+    public static void close(){
+        if(instance != null){
+            instance.mContext.unregisterReceiver(instance.batteryReceiver);
+            try{
+                instance.randomFile.close();
+            }catch (IOException i){
+                i.printStackTrace();
+            }
+            instance = null;
         }
     }
 }

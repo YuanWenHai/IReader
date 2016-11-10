@@ -47,16 +47,16 @@ public class DBHelper {
         cursor.close();
         return list;
     }
-    public List<Chapter> getChapters(String bookName){
+    public ArrayList<Chapter> getChapters(String bookName){
         Cursor cursor = db.rawQuery("SELECT * FROM chapter WHERE book_name=?",new String[]{bookName});
-        List<Chapter> list = new ArrayList<>();
+        ArrayList<Chapter> list = new ArrayList<>();
         Chapter chapter;
         while (cursor.moveToNext()){
             chapter = new Chapter();
             chapter.setBookName(cursor.getString(cursor.getColumnIndex("book_name")));
             chapter.setChapterName(cursor.getString(cursor.getColumnIndex("chapter_name")));
-            chapter.setChapterNumber(cursor.getInt(cursor.getColumnIndex("chapter_number")));
-            chapter.setChapterPosition(cursor.getInt(cursor.getColumnIndex("chapter_position")));
+            chapter.setChapterParagraphPosition(cursor.getInt(cursor.getColumnIndex("chapter_paragraph_position")));
+            chapter.setChapterBytePosition(cursor.getInt(cursor.getColumnIndex("chapter_byte_position")));
             list.add(chapter);
         }
         cursor.close();
@@ -71,8 +71,8 @@ public class DBHelper {
                     cv = new ContentValues();
                     cv.put("book_name", chapter.getBookName());
                     cv.put("chapter_name", chapter.getChapterName());
-                    cv.put("chapter_number", chapter.getChapterNumber());
-                    cv.put("chapter_position", chapter.getChapterPosition());
+                    cv.put("chapter_paragraph_position", chapter.getChapterParagraphPosition());
+                    cv.put("chapter_byte_position", chapter.getChapterBytePosition());
                     db.insert("chapter","book_name",cv);
                 }
             }

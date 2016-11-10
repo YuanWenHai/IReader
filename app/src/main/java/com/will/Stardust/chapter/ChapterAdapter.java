@@ -9,6 +9,7 @@ import android.widget.TextView;
 import com.will.Stardust.R;
 import com.will.Stardust.bean.Chapter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -16,10 +17,10 @@ import java.util.List;
  */
 
 public class ChapterAdapter extends RecyclerView.Adapter <ChapterAdapter.ChapterViewHolder>{
-    private List<Chapter> data;
+    private List<Chapter> data = new ArrayList<>();
+    private OnItemClickListener mListener;
+    public ChapterAdapter(){
 
-    public ChapterAdapter(List<Chapter> data){
-        this.data = data;
     }
 
     @Override
@@ -43,6 +44,24 @@ public class ChapterAdapter extends RecyclerView.Adapter <ChapterAdapter.Chapter
         public ChapterViewHolder(View view){
             super(view);
             text = (TextView)view.findViewById(R.id.chapter_item_text);
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(mListener!=null){
+                        mListener.onItemClick(data.get(getAdapterPosition()));
+                    }
+                }
+            });
         }
+    }
+    public void setOnItemClickListener(OnItemClickListener listener){
+        mListener = listener;
+    }
+    public void addData(List<Chapter> list){
+        data.addAll(list);
+        notifyDataSetChanged();
+    }
+    public interface OnItemClickListener{
+        void onItemClick(Chapter chapter);
     }
 }

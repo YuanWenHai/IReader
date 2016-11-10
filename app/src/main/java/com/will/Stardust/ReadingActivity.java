@@ -21,15 +21,14 @@ import com.will.Stardust.View.PageView;
 import com.will.Stardust.base.BaseActivity;
 import com.will.Stardust.bean.Book;
 import com.will.Stardust.chapter.ChapterActivity;
-import com.will.Stardust.chapter.ChapterFactory;
 import com.will.Stardust.common.SPHelper;
-import com.will.Stardust.common.Util;
 
 /**
  * Created by will on 2016/11/3.
  */
 
 public class ReadingActivity extends BaseActivity implements Animation.AnimationListener{
+    private static final int REQUEST_CODE = 666;
     private PageFactory mPageFactory;
     private PageView pageView;
     private View actionBar;
@@ -62,8 +61,7 @@ public class ReadingActivity extends BaseActivity implements Animation.Animation
         });
 
         pageView.setSystemUiVisibility(View.INVISIBLE);
-        mPageFactory = new PageFactory(pageView);
-        mPageFactory.openBook(book);
+        mPageFactory = PageFactory.getInstance(pageView,book);
         mPageFactory.nextPage();
 
 
@@ -155,8 +153,8 @@ public class ReadingActivity extends BaseActivity implements Animation.Animation
             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
             originPosition = -1;
         } else{
+            PageFactory.close();
             super.onBackPressed();
-            mPageFactory.close();
         }
     }
 
@@ -174,13 +172,8 @@ public class ReadingActivity extends BaseActivity implements Animation.Animation
                 setNightMode(!SPHelper.getInstance().isNightMode());
                 break;
             case R.id.page_menu_chapter:
-
-                if(ChapterFactory.getInstance(book).getChapter()){
-                    Intent intent = new Intent(this, ChapterActivity.class);
-                    startActivity(intent);
-                }else{
-                    Util.makeToast("未发现章节");
-                }
+                Intent intent = new Intent(this, ChapterActivity.class);
+                startActivityForResult(intent,REQUEST_CODE);
                 break;
             case R.id.page_menu_overflow:
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
@@ -264,5 +257,12 @@ public class ReadingActivity extends BaseActivity implements Animation.Animation
                }
             }
         });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+       if(REQUEST_CODE == requestCode && resultCode == RESULT_OK && data!=null){
+           PageFactory.getInstance().setPosition(data.getIntExtra("position",1));
+       }
     }
 }
