@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:title="@string/search_by_zhang"
+        android:id="@+id/chapter_menu_search_by_zhang"
+        app:showAsAction="never"/>
+    <item
+        android:title="@string/search_by_jie"
+        android:id="@+id/chapter_menu_search_by_jie"
+        app:showAsAction="never"/>
+    <item
+        android:title="@string/search_by_hui"
+        android:id="@+id/chapter_menu_search_by_hui"
+        app:showAsAction="never"/>
+</menu>

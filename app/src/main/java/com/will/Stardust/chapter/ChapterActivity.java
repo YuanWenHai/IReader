@@ -1,10 +1,13 @@
 package com.will.Stardust.chapter;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 
 import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView;
@@ -12,6 +15,7 @@ import com.will.Stardust.PageFactory;
 import com.will.Stardust.R;
 import com.will.Stardust.base.BaseActivity;
 import com.will.Stardust.bean.Chapter;
+import com.will.Stardust.common.Util;
 
 import java.util.List;
 
@@ -19,31 +23,30 @@ import java.util.List;
  * Created by will on 2016/11/6.
  */
 
-public class ChapterActivity extends BaseActivity {
+public class ChapterActivity extends BaseActivity implements ChapterFactory.LoadCallback{
+    private ProgressDialog progressDialog;
+    private ChapterAdapter mAdapter;
+    private ChapterFactory chapterFactory;
     @Override
     protected void onCreate( Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chapter);
-        ChapterFactory chapterFactory = new ChapterFactory();
         FastScrollRecyclerView recyclerView = (FastScrollRecyclerView) findViewById(R.id.chapter_activity_recycler_view);
-        final SwipeRefreshLayout refreshLayout = (SwipeRefreshLayout) findViewById(R.id.chapter_activity_refresh_layout);
-        refreshLayout.setEnabled(false);
-        refreshLayout.post(new Runnable() {
-            @Override
-            public void run() {
-                refreshLayout.setRefreshing(true);
-            }
-        });
-        final ChapterAdapter mAdapter = new ChapterAdapter();
+
+        mAdapter = new ChapterAdapter();
         recyclerView.setAdapter(mAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        chapterFactory.getChapter(new ChapterFactory.LoadCallback() {
-            @Override
-            public void onFinishLoad(List<Chapter> list) {
-                mAdapter.addData(list);
-                refreshLayout.setRefreshing(false);
-            }
-        });
+
+
+        chapterFactory = new ChapterFactory();
+        List<Chapter> data = chapterFactory.getChapterFromDB();
+        if(data.size() > 0){
+            mAdapter.addData(data);
+            Log.e("chapter number is",data.get(getChapterNumber(PageFactory.getInstance().getCurrentEnd(),data)).getChapterName());
+        }else{
+            //loadChapters(ChapterFactory.KEYWORD_ZHANG);
+            Util.makeToast("未发现章节，点击右上角查询");
+        }
 
         mAdapter.setOnItemClickListener(new ChapterAdapter.OnItemClickListener() {
             @Override
@@ -66,5 +69,85 @@ public class ChapterActivity extends BaseActivity {
                 onBackPressed();
             }
         });
+    }
+    private void showDialog(){
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMax(100);
+        progressDialog.setProgress(0);
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        progressDialog.setMessage("正在加载章节中...");
+        progressDialog.show();
+        progressDialog.setCancelable(false);
+    }
+
+    private void loadChapters(String key){
+        mAdapter.clearData();
+        mAdapter.notifyDataSetChanged();
+        showDialog();
+        chapterFactory.setProgressCallback(new ChapterFactory.ProgressCallback() {
+            @Override
+            public void currentPercentage(int percent) {
+                if(progressDialog.getProgress() != percent){
+                    progressDialog.setProgress(percent);
+                    progressDialog.setMessage("正在加载章节中...");
+                }
+            }
+        });
+        chapterFactory.setKeyword(key);
+        chapterFactory.getChapterFromFile(this);
+    }
+
+    @Override
+    public void onFinishLoad(List<Chapter> list) {
+        mAdapter.clearData();
+        mAdapter.addData(list);
+        progressDialog.dismiss();
+    }
+
+    @Override
+    public void onNotFound() {
+        Util.makeToast("未发现章节");
+        progressDialog.dismiss();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.chapter_menu,menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        String keyword = "";
+        switch (item.getItemId()){
+            case R.id.chapter_menu_search_by_zhang:
+                keyword = ChapterFactory.KEYWORD_ZHANG;
+                break;
+            case R.id.chapter_menu_search_by_jie:
+                keyword = ChapterFactory.KEYWORD_JIE;
+                break;
+            case R.id.chapter_menu_search_by_hui:
+                keyword = ChapterFactory.KEYWORD_HUI;
+                break;
+        }
+        loadChapters(keyword);
+        return true;
+    }
+    private int getChapterNumber(int position,List<Chapter> list){
+        int begin = 0;
+        int end = list.size()-1;
+        while (begin < end){
+            int middle = begin + (end-begin)/2;
+            if(list.get(middle).getChapterBytePosition() <= position  && list.get(middle+1).getChapterBytePosition() > position){
+                return middle;
+            }else if (list.get(middle).getChapterBytePosition() > position && list.get(middle-1).getChapterBytePosition() <= position){
+                return middle -1;
+            }else if(list.get(middle).getChapterBytePosition() < position && list.get(middle+1).getChapterBytePosition() < position){
+                 begin = middle+1;
+            }else if(list.get(middle).getChapterBytePosition() > position && list.get(middle-1).getChapterBytePosition() > position){
+                end = middle-1;
+            }
+        }
+        return -1;
     }
 }

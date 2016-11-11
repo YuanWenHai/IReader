@@ -160,7 +160,7 @@ public class ReadingActivity extends BaseActivity implements Animation.Animation
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.page_toolbar_menu,menu);
+        getMenuInflater().inflate(R.menu.reading_menu,menu);
         setNightMode(SPHelper.getInstance().isNightMode());
         return true;
     }
@@ -172,8 +172,14 @@ public class ReadingActivity extends BaseActivity implements Animation.Animation
                 setNightMode(!SPHelper.getInstance().isNightMode());
                 break;
             case R.id.page_menu_chapter:
-                Intent intent = new Intent(this, ChapterActivity.class);
-                startActivityForResult(intent,REQUEST_CODE);
+                final Intent intent = new Intent(this, ChapterActivity.class);
+                changeActionState();
+                pageView.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        startActivityForResult(intent,REQUEST_CODE);
+                    }
+                },300);
                 break;
             case R.id.page_menu_overflow:
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);

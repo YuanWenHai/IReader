@@ -25,23 +25,25 @@ import java.util.List;
  */
 
 public class ChapterFactory {
-    private static final String REGULAR_ZHANG = "第[0-9零一二两三四五六七八九十百千万 ]+章 .*?\\s";
-    private static final String REGULAR_JIE = "第[0-9零一二两三四五六七八九十百千万 ]+节 .*?\\s";
-    private static final String REGULAR_HUI = "第[0-9零一二两三四五六七八九十百千万 ]+回 .*?\\s";
-
+    public static final String KEYWORD_ZHANG = "章 ";
+    public static final String KEYWORD_JIE = "节 ";
+    public static final String KEYWORD_HUI = "回 ";
 
 
     private Book book;
     private MappedByteBuffer mappedByteBuffer;
     private int mappedFileLength;
     private String code;
-    private String keyword = "章 ";
-    private ArrayList<Chapter> chapters;
+    private String keyword = KEYWORD_ZHANG;
+    private ArrayList<Chapter> chapters = new ArrayList<>();
     private final ArrayList<Integer> positions = new ArrayList<>();
 
-    //private volatile boolean stopThread;
+    private ProgressCallback progressCallback;
+
     private Handler mHandler = new Handler(Looper.getMainLooper());
 
+    private volatile boolean hasChapters = true;
+    private boolean checkHasChapter = true;
     public ChapterFactory() {
         book = PageFactory.getInstance().getBook();
         mappedByteBuffer = PageFactory.getInstance().getMappedFile();
@@ -49,73 +51,80 @@ public class ChapterFactory {
         code = PageFactory.getInstance().getCode();
     }
 
-    public void getChapter(final LoadCallback callback) {
+    public void getChapterFromFile(final LoadCallback callback) {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                chapters = DBHelper.getInstance().getChapters(book.getBookName());
-                if (chapters.size() != 0) {
-                    mHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            callback.onFinishLoad(chapters);
-                        }
-                    });
-                }else{
-                    Log.e("loading","chapters");
-                    findParagraphInBytePosition();
-                    findChapterParagraphPosition(callback);
-                }
+                Log.e("loading","chapters");
+                hasChapters = true;
+                chapters.clear();
+                findParagraphInBytePosition();
+                DBHelper.getInstance().deleteChapters(book);
+                findChapterParagraphPosition(callback);
             }
         }).start();
 
     }
+    public List<Chapter> getChapterFromDB(){
+        return DBHelper.getInstance().getChapters(book.getBookName());
+    }
 
     private void findChapterParagraphPosition(final LoadCallback callback){
-            int i = 0;
-            try {
-                InputStreamReader isr = new InputStreamReader(new FileInputStream(new File(book.getPath())),code);
-                BufferedReader reader = new BufferedReader(isr);
-                String temp;
-                Chapter chapter;
-                Log.e("chapters","start loading");
-                while ((temp = reader.readLine()) != null) {
+        chapters.clear();
+        int i = 0;
+        try {
+            InputStreamReader isr = new InputStreamReader(new FileInputStream(new File(book.getPath())),code);
+            BufferedReader reader = new BufferedReader(isr);
+            String temp;
+            Chapter chapter;
+            Log.e("chapters","start loading");
+            while ((temp = reader.readLine()) != null) {
 
-                    if(temp.contains("第")&&temp.contains(keyword)){
-                        chapter = new Chapter();
-                        chapter.setChapterName(temp);
-                        chapter.setBookName(book.getBookName());
-                        chapter.setChapterParagraphPosition(i);
-                        chapters.add(chapter);
-                        //Log.e("chapter name",chapter.getChapterName());
-                    }
-                    i++;
+                if(temp.contains("第")&&temp.contains(keyword)){
+                    chapter = new Chapter();
+                    chapter.setChapterName(temp);
+                    chapter.setBookName(book.getBookName());
+                    chapter.setChapterParagraphPosition(i);
+                    chapters.add(chapter);
+                    //Log.e("chapter name",chapter.getChapterName());
                 }
-                Log.e("chapters","load completely");
-
-
-                synchronized (positions){
-                    Log.e("start","insert data");
-                    for(int a=0;a<chapters.size();a++){
-                        chapter = chapters.get(a);
-                        chapter.setChapterBytePosition(positions.get(chapter.getChapterParagraphPosition()-1));
-                        //Log.e("chapter position",chapter.getChapterBytePosition()+"");
-                    }
-                }
-                Log.e("insert","completely");
+                i++;
+            }
+            if(chapters.size() == 0){
+                hasChapters = false;
                 mHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callback.onFinishLoad(chapters);
+                        callback.onNotFound();
                     }
                 });
-                DBHelper.getInstance().saveChapters(chapters);
-            } catch (FileNotFoundException f) {
-                f.printStackTrace();
-                Util.makeToast("未发现" + book.getBookName() + "文件");
-            } catch (IOException e) {
-                e.printStackTrace();
+                return;
             }
+            Log.e("chapters","load completely");
+
+
+            synchronized (positions){
+                Log.e("start","insert data");
+                for(int a=0;a<chapters.size();a++){
+                    chapter = chapters.get(a);
+                    chapter.setChapterBytePosition(positions.get(chapter.getChapterParagraphPosition()-1));
+                    //Log.e("chapter position",chapter.getChapterBytePosition()+"");
+                }
+            }
+            Log.e("insert","completely");
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    callback.onFinishLoad(chapters);
+                }
+            });
+            DBHelper.getInstance().saveChapters(chapters);
+        } catch (FileNotFoundException f) {
+            f.printStackTrace();
+            Util.makeToast("未发现" + book.getBookName() + "文件");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
     private void findParagraphInBytePosition(){
@@ -124,11 +133,26 @@ public class ChapterFactory {
            public void run() {
                synchronized (positions){
                    Log.e("positions","start loading");
-                   byte[] bytes = new byte[mappedFileLength];
-                   mappedByteBuffer.get(bytes);
+                   positions.clear();
+                   //此处使用全局变量的遍历需要的时间似乎比局部变量更长?不确定.
+                   byte[] fileBytes = new byte[mappedFileLength];
+                   mappedByteBuffer.get(fileBytes);
+                   mappedByteBuffer.position(0);
                    for(int i=0;i<mappedFileLength;i++){
-                       if(bytes[i] == 0x0a){
+                       if(fileBytes[i] == 0x0a){
                            positions.add(i);
+                           if( i % 1000 == 0 && progressCallback !=null){
+                               if(!hasChapters){
+                                   return;
+                               }
+                               final int percent = i*100/mappedFileLength;
+                               mHandler.post(new Runnable() {
+                                   @Override
+                                   public void run() {
+                                       progressCallback.currentPercentage(percent);
+                                   }
+                               });
+                           }
                        }
                    }
                    Log.e("positions","load completely");
@@ -136,7 +160,17 @@ public class ChapterFactory {
            }
        }).start();
     }
-    interface LoadCallback {
+    public void setProgressCallback(ProgressCallback callback){
+        progressCallback = callback;
+    }
+    public void setKeyword(String keyword){
+        this.keyword = keyword;
+    }
+    public interface LoadCallback {
         void onFinishLoad(List<Chapter> list);
+        void onNotFound();
+    }
+    public interface ProgressCallback {
+        void currentPercentage(int percent);
     }
 }

@@ -61,6 +61,9 @@ public class ChapterAdapter extends RecyclerView.Adapter <ChapterAdapter.Chapter
         data.addAll(list);
         notifyDataSetChanged();
     }
+    public void clearData(){
+        data.clear();
+    }
     public interface OnItemClickListener{
         void onItemClick(Chapter chapter);
     }

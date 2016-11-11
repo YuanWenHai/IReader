@@ -12,4 +12,7 @@
     <string name="change_progress">进度跳转</string>
     <string name="chapter">章节目录</string>
     <string name="overflow">更多</string>
+    <string name="search_by_zhang">按章查找</string>
+    <string name="search_by_jie">按节查找</string>
+    <string name="search_by_hui">按回查找</string>
 </resources>

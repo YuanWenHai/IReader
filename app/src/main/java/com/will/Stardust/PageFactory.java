@@ -45,6 +45,7 @@ public class PageFactory {
     private int end;//当前阅读的字节数_结束
     private MappedByteBuffer mappedFile;//映射到内存中的文件
     private RandomAccessFile randomFile;//关闭Random流时使用
+    private byte[] fileBytes;
 
     private String code = "GBK";
     private Context mContext;
@@ -350,7 +351,9 @@ private void pageDown(){
     public String getCode(){
         return code;
     }
-
+    public int getCurrentEnd(){
+        return end;
+    }
     public static void close(){
         if(instance != null){
             instance.mContext.unregisterReceiver(instance.batteryReceiver);

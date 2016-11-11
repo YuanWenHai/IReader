@@ -116,4 +116,8 @@ public class DBHelper {
         cv.put("access_time",book.getAccessTime());
         db.update("book",cv,"book_path=?",new String[]{book.getPath()});
     }
+
+    public void deleteChapters(Book book){
+        db.delete("chapter","book_name=?",new String[]{book.getBookName()});
+    }
 }
