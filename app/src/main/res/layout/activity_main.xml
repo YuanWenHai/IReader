@@ -6,7 +6,7 @@
     android:layout_height="match_parent">
     <View
         android:id="@+id/main_status_bar"
-        android:background="@color/colorPrimaryDark"
+        android:background="?attr/colorPrimaryDark"
         android:layout_width="match_parent"
         android:layout_height="@dimen/status_height"/>
 
@@ -16,7 +16,7 @@
         app:theme="@style/ToolbarTheme"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/colorPrimary"/>
+        android:background="?attr/colorPrimary"/>
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/main_recycler_view"

@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.BatteryManager;
 import android.util.DisplayMetrics;
@@ -40,12 +39,11 @@ public class PageFactory {
     private int fileLength;//映射到内存中Book的字节数
     private int fontSize ;
     private static final int margin = 30;//文字显示距离屏幕实际尺寸的偏移量
-    private Paint myPaint;
+    private Paint mPaint;
     private int begin;//当前阅读的字节数_开始
     private int end;//当前阅读的字节数_结束
     private MappedByteBuffer mappedFile;//映射到内存中的文件
     private RandomAccessFile randomFile;//关闭Random流时使用
-    private byte[] fileBytes;
 
     private String code = "GBK";
     private Context mContext;
@@ -88,9 +86,10 @@ public class PageFactory {
         pageWidth = screenWidth -margin*2;
         lineNumber = pageHeight/(fontSize+lineSpace);
 
-        myPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        myPaint.setTextSize(fontSize);
-        myPaint.setColor(isNightMode ? Color.WHITE : Color.BLACK);
+        mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mPaint.setTextSize(fontSize);
+        mPaint.setColor(isNightMode ? mContext.getResources().getColor(R.color.nightModeTextColor) :
+                mContext.getResources().getColor(R.color.dayModeTextColor));
 
         Bitmap bitmap = Bitmap.createBitmap(screenWidth,screenHeight, Bitmap.Config.ARGB_8888);
         mView.setBitmap(bitmap);
@@ -165,7 +164,7 @@ private void pageDown(){
         strParagraph = strParagraph.replaceAll("\r\n","  ");
         strParagraph = strParagraph.replaceAll("\n", "  ");
         while(strParagraph.length   ()>0){
-            int size = myPaint.breakText(strParagraph,true,pageWidth,null);
+            int size = mPaint.breakText(strParagraph,true,pageWidth,null);
             content.add(strParagraph.substring(0,size));
             strParagraph = strParagraph.substring(size);
             if(content.size() >= lineNumber){
@@ -197,7 +196,7 @@ private void pageDown(){
             strParagraph = strParagraph.replaceAll("\r\n","  ");
             strParagraph = strParagraph.replaceAll("\n","  ");
             while(strParagraph.length() > 0){
-                int size = myPaint.breakText(strParagraph,true,pageWidth,null);
+                int size = mPaint.breakText(strParagraph,true,pageWidth,null);
                 tempList.add(strParagraph.substring(0, size));
                 strParagraph = strParagraph.substring(size);
                 if(tempList.size() >= lineNumber){
@@ -217,37 +216,34 @@ private void pageDown(){
         if(content.size()>0){
             int y = margin;
             if(isNightMode){
-                mCanvas.drawColor(Color.BLACK);
-                myPaint.setColor(Color.WHITE);
+                mCanvas.drawColor(mContext.getResources().getColor(R.color.nightModeBackgroundColor));
             }else{
-                mCanvas.drawColor(Color.rgb(252,236,223));
-                myPaint.setColor(Color.BLACK);
+                mCanvas.drawColor(mContext.getResources().getColor(R.color.dayModeBackgroundColor));
             }
             for(String line : content){
                 y += fontSize+lineSpace;
-                mCanvas.drawText(line,margin,y,myPaint);
+                mCanvas.drawText(line,margin,y, mPaint);
             }
             float percent = (float) begin / fileLength *100;
             DecimalFormat format = new DecimalFormat("#0.00");
             String readingProgress = format.format(percent)+"%";
-            int length = (int ) myPaint.measureText(readingProgress);
-            mCanvas.drawText(readingProgress, (screenWidth - length) / 2, screenHeight - margin, myPaint);
+            int length = (int ) mPaint.measureText(readingProgress);
+            mCanvas.drawText(readingProgress, (screenWidth - length) / 2, screenHeight - margin, mPaint);
 
             //显示时间
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm", Locale.CHINA);
             String time = simpleDateFormat.format(new Date(System.currentTimeMillis()));
-            mCanvas.drawText("Time:"+time,margin, screenHeight -margin,myPaint);
+            mCanvas.drawText("Time:"+time,margin, screenHeight -margin, mPaint);
 
             //显示电量
             float[] widths = new float[batteryLevel.length()];
             float batteryLevelStringWidth = 0;
-            myPaint.getTextWidths(batteryLevel, widths);
+            mPaint.getTextWidths(batteryLevel, widths);
             for(float f : widths){
                 batteryLevelStringWidth += f;
             }
-            mCanvas.drawText(batteryLevel, screenWidth - margin - batteryLevelStringWidth, screenHeight - margin, myPaint);
+            mCanvas.drawText(batteryLevel, screenWidth - margin - batteryLevelStringWidth, screenHeight - margin, mPaint);
             mView.invalidate();
-
         }
     }
     private void registerBatteryReceiver(){
@@ -293,7 +289,7 @@ private void pageDown(){
             return;
         }
         fontSize = size;
-        myPaint.setTextSize(fontSize);
+        mPaint.setTextSize(fontSize);
         pageHeight =  screenHeight - margin*2 - fontSize;
         lineNumber = pageHeight/(fontSize+lineSpace);
         end = begin;
@@ -326,7 +322,7 @@ private void pageDown(){
         return begin*100/ fileLength;
     }
     public int setProgress(int i){
-        int origin = end;
+        int origin = begin;
         end = fileLength * i/100;
         if(end == fileLength){
             end--;
@@ -343,6 +339,8 @@ private void pageDown(){
 
     public void setNightMode(boolean which){
         isNightMode = which;
+        mPaint.setColor(which ? mContext.getResources().getColor(R.color.nightModeTextColor) :
+                mContext.getResources().getColor(R.color.dayModeTextColor));
         printPage( );
     }
     public Book getBook(){
@@ -353,6 +351,9 @@ private void pageDown(){
     }
     public int getCurrentEnd(){
         return end;
+    }
+    public int getCurrentBegin(){
+        return begin;
     }
     public static void close(){
         if(instance != null){

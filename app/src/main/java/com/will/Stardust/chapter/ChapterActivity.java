@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -15,6 +14,7 @@ import com.will.Stardust.PageFactory;
 import com.will.Stardust.R;
 import com.will.Stardust.base.BaseActivity;
 import com.will.Stardust.bean.Chapter;
+import com.will.Stardust.common.SPHelper;
 import com.will.Stardust.common.Util;
 
 import java.util.List;
@@ -27,13 +27,15 @@ public class ChapterActivity extends BaseActivity implements ChapterFactory.Load
     private ProgressDialog progressDialog;
     private ChapterAdapter mAdapter;
     private ChapterFactory chapterFactory;
+    private FastScrollRecyclerView recyclerView;
     @Override
     protected void onCreate( Bundle savedInstanceState) {
+        setTheme(SPHelper.getInstance().isNightMode() ? R.style.AppNightTheme : R.style.AppDayTheme);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chapter);
-        FastScrollRecyclerView recyclerView = (FastScrollRecyclerView) findViewById(R.id.chapter_activity_recycler_view);
+        recyclerView = (FastScrollRecyclerView) findViewById(R.id.chapter_activity_recycler_view);
 
-        mAdapter = new ChapterAdapter();
+        mAdapter = new ChapterAdapter(this);
         recyclerView.setAdapter(mAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
@@ -42,7 +44,10 @@ public class ChapterActivity extends BaseActivity implements ChapterFactory.Load
         List<Chapter> data = chapterFactory.getChapterFromDB();
         if(data.size() > 0){
             mAdapter.addData(data);
-            Log.e("chapter number is",data.get(getChapterNumber(PageFactory.getInstance().getCurrentEnd(),data)).getChapterName());
+            int chapterNumber = getChapterNumber(PageFactory.getInstance().getCurrentEnd(),data);
+            mAdapter.setCurrentChapter(chapterNumber);
+            mAdapter.notifyDataSetChanged();
+            recyclerView.scrollToPosition(chapterNumber);
         }else{
             //loadChapters(ChapterFactory.KEYWORD_ZHANG);
             Util.makeToast("未发现章节，点击右上角查询");
@@ -71,7 +76,7 @@ public class ChapterActivity extends BaseActivity implements ChapterFactory.Load
         });
     }
     private void showDialog(){
-        progressDialog = new ProgressDialog(this);
+        progressDialog = new ProgressDialog(this,R.style.AppDialogTheme);
         progressDialog.setMax(100);
         progressDialog.setProgress(0);
         progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
@@ -99,8 +104,11 @@ public class ChapterActivity extends BaseActivity implements ChapterFactory.Load
 
     @Override
     public void onFinishLoad(List<Chapter> list) {
+        int chapterNumber = getChapterNumber(PageFactory.getInstance().getCurrentEnd(),list);
+        mAdapter.setCurrentChapter(chapterNumber);
         mAdapter.clearData();
         mAdapter.addData(list);
+        recyclerView.scrollToPosition(chapterNumber);
         progressDialog.dismiss();
     }
 
@@ -136,8 +144,14 @@ public class ChapterActivity extends BaseActivity implements ChapterFactory.Load
     private int getChapterNumber(int position,List<Chapter> list){
         int begin = 0;
         int end = list.size()-1;
-        while (begin < end){
+        while (begin <= end){
             int middle = begin + (end-begin)/2;
+            if(middle == 0 && list.get(middle).getChapterBytePosition() >= position){
+                return 0;
+            }
+            if(middle == list.size()-1 && list.get(list.size()-1).getChapterBytePosition() <= position){
+                return list.size()-1;
+            }
             if(list.get(middle).getChapterBytePosition() <= position  && list.get(middle+1).getChapterBytePosition() > position){
                 return middle;
             }else if (list.get(middle).getChapterBytePosition() > position && list.get(middle-1).getChapterBytePosition() <= position){
@@ -148,6 +162,6 @@ public class ChapterActivity extends BaseActivity implements ChapterFactory.Load
                 end = middle-1;
             }
         }
-        return -1;
+        return 0;
     }
 }

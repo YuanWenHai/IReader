@@ -1,6 +1,9 @@
 package com.will.Stardust;
 
 import android.content.Intent;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LayerDrawable;
 import android.os.Bundle;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
@@ -38,13 +41,15 @@ public class ReadingActivity extends BaseActivity implements Animation.Animation
     private boolean isAnimating;
     private boolean isActionBarHidden = true;
     private int originPosition = -1;
-    private Book book;
+    private boolean originMode;
+    private boolean isNightMode = originMode = SPHelper.getInstance().isNightMode();
     @Override
     protected void onCreate( Bundle savedInstanceState) {
+        setTheme(isNightMode ? R.style.AppNightTheme : R.style.AppDayTheme);
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.reading_activity_layout);
-        book = (Book) getIntent().getSerializableExtra("book");
+        Book book = (Book) getIntent().getSerializableExtra("book");
 
         pageView = (PageView) findViewById(R.id.reading_activity_view);
         actionBar = findViewById(R.id.reading_activity_action_bar);
@@ -56,7 +61,7 @@ public class ReadingActivity extends BaseActivity implements Animation.Animation
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                onBackPressed();
+                finishReadingActivity();
             }
         });
 
@@ -153,15 +158,22 @@ public class ReadingActivity extends BaseActivity implements Animation.Animation
             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
             originPosition = -1;
         } else{
-            PageFactory.close();
-            super.onBackPressed();
+            finishReadingActivity();
         }
     }
 
+    private void finishReadingActivity(){
+        PageFactory.close();
+        if(originMode != SPHelper.getInstance().isNightMode()){
+            setResult(RESULT_OK);
+        }
+        finish();
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.reading_menu,menu);
-        setNightMode(SPHelper.getInstance().isNightMode());
+        //setNightMode(SPHelper.getInstance().isNightMode());
+        iniTheme();
         return true;
     }
 
@@ -189,30 +201,59 @@ public class ReadingActivity extends BaseActivity implements Animation.Animation
 
         return true;
     }
-    private  void setNightMode(boolean which){
-        if(which){
+
+    private void iniTheme(){
+        if(isNightMode){
             toolbar.getMenu().getItem(0).setIcon(R.drawable.ic_brightness_6_white_24dp);
-            mPageFactory.setNightMode(true);
-            toolbar.setBackgroundColor(getResources().getColor(R.color.blueGrey));
-            statusBar.setBackgroundColor(getResources().getColor(R.color.blueGreyDark));
-            SPHelper.getInstance().setNightMode(true);
         }else{
             toolbar.getMenu().getItem(0).setIcon(R.drawable.ic_brightness_7_white_24dp);
-            toolbar.setPopupTheme(R.style.ToolbarPopThemeLight);
-            mPageFactory.setNightMode(false);
-            toolbar.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
-            statusBar.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
-            SPHelper.getInstance().setNightMode(false);
         }
     }
     private static final String FONT_STR = "当前字号：";
+    private FloatingActionButton increaseFont;
+    private FloatingActionButton decreaseFont;
+    private View divider;
+    private SeekBar progressBar;
+    private CardView bottomSheet;
+
+    private  void setNightMode(boolean which){
+        if(which){
+            //change toolbar
+            toolbar.getMenu().getItem(0).setIcon(R.drawable.ic_brightness_6_white_24dp);
+            mPageFactory.setNightMode(true);
+            toolbar.setBackgroundColor(getResources().getColor(R.color.nightColorPrimary));
+            statusBar.setBackgroundColor(getResources().getColor(R.color.nightColorPrimaryDark));
+            //change bottom sheet
+            increaseFont.setBackgroundTintList(getResources().getColorStateList(R.color.nightColorPrimaryLight));
+            decreaseFont.setBackgroundTintList(getResources().getColorStateList(R.color.nightColorPrimaryLight));
+            divider.setBackgroundColor(getResources().getColor(R.color.nightColorPrimaryLight));
+            bottomSheet.setCardBackgroundColor(getResources().getColor(R.color.nightColorPrimary));
+            changeSeekbarColor(progressBar,getResources().getColor(R.color.nightColorPrimaryLight));
+
+            SPHelper.getInstance().setNightMode(true);
+        }else{
+            toolbar.getMenu().getItem(0).setIcon(R.drawable.ic_brightness_7_white_24dp);
+            mPageFactory.setNightMode(false);
+            toolbar.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+            statusBar.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
+            //as above
+            increaseFont.setBackgroundTintList(getResources().getColorStateList(R.color.colorPrimaryLight));
+            decreaseFont.setBackgroundTintList(getResources().getColorStateList(R.color.colorPrimaryLight));
+            divider.setBackgroundColor(getResources().getColor(R.color.colorPrimaryLight));
+            bottomSheet.setCardBackgroundColor(getResources().getColor(R.color.colorPrimary));
+            changeSeekbarColor(progressBar,getResources().getColor(R.color.colorPrimaryLight));
+
+            SPHelper.getInstance().setNightMode(false);
+        }
+    }
     private void iniBottomSheetMenu(){
-        CardView bottomSheet = (CardView) findViewById(R.id.reading_activity_bottom_sheet);
+        bottomSheet = (CardView) findViewById(R.id.reading_activity_bottom_sheet);
+        divider = findViewById(R.id.reading_activity_divider);
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
         bottomSheetBehavior.setPeekHeight(0);
         //change font
-        FloatingActionButton increaseFont = (FloatingActionButton) findViewById(R.id.reading_activity_increase_font);
-        FloatingActionButton decreaseFont = (FloatingActionButton) findViewById(R.id.reading_activity_decrease_font);
+        increaseFont = (FloatingActionButton) findViewById(R.id.reading_activity_increase_font);
+        decreaseFont = (FloatingActionButton) findViewById(R.id.reading_activity_decrease_font);
         final TextView fontText = (TextView) findViewById(R.id.reading_activity_font_text);
         fontText.setText((FONT_STR + mPageFactory.getFontSize()));
         increaseFont.setOnClickListener(new View.OnClickListener() {
@@ -230,7 +271,7 @@ public class ReadingActivity extends BaseActivity implements Animation.Animation
             }
         });
         //change progress
-        final SeekBar progressBar = (SeekBar) findViewById(R.id.reading_activity_seek_bar);
+        progressBar = (SeekBar) findViewById(R.id.reading_activity_seek_bar);
         final TextView progressText = (TextView) findViewById(R.id.reading_activity_progress_text);
         final ImageView resetProgress = (ImageView) findViewById(R.id.reading_activity_progress_reset);
         progressBar.setProgress(mPageFactory.getProgress());
@@ -263,8 +304,33 @@ public class ReadingActivity extends BaseActivity implements Animation.Animation
                }
             }
         });
+        changeSeekbarColor(progressBar,getResources().getColor(isNightMode? R.color.nightColorPrimaryLight : R.color.colorPrimaryLight));
     }
 
+    public void changeSeekbarColor(SeekBar s,int color)
+    {
+        PorterDuff.Mode mMode = PorterDuff.Mode.SRC_ATOP;
+
+        LayerDrawable layerDrawable = (LayerDrawable) s.getProgressDrawable();
+        Drawable progress =  layerDrawable.findDrawableByLayerId(android.R.id.progress);
+        Drawable secondary =  layerDrawable.findDrawableByLayerId(android.R.id.secondaryProgress);
+        Drawable background =  layerDrawable.findDrawableByLayerId(android.R.id.background);
+        Drawable th = s.getThumb();
+
+        // Setting colors
+        progress.setColorFilter(color,mMode);
+        secondary.setColorFilter(color,mMode);
+        background.setColorFilter(color, mMode);
+        th.setColorFilter(color,mMode);
+
+        // Applying Tinted Drawables
+        layerDrawable.setDrawableByLayerId(android.R.id.progress, progress);
+
+        layerDrawable.setDrawableByLayerId(android.R.id.secondaryProgress, secondary);
+
+        layerDrawable.setDrawableByLayerId(android.R.id.background, background);
+
+    }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
        if(REQUEST_CODE == requestCode && resultCode == RESULT_OK && data!=null){

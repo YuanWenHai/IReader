@@ -1,5 +1,6 @@
 package com.will.Stardust.chapter;
 
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,13 +20,20 @@ import java.util.List;
 public class ChapterAdapter extends RecyclerView.Adapter <ChapterAdapter.ChapterViewHolder>{
     private List<Chapter> data = new ArrayList<>();
     private OnItemClickListener mListener;
-    public ChapterAdapter(){
-
+    private int currentChapter = -1;
+    private Context mContext;
+    public ChapterAdapter(Context context){
+        mContext = context;
     }
 
     @Override
     public void onBindViewHolder(ChapterViewHolder holder, int position) {
         holder.text.setText(data.get(position).getChapterName());
+        if(currentChapter == position){
+            holder.text.setTextColor(mContext.getResources().getColor(R.color.colorPrimary));
+        }else{
+            holder.text.setTextColor(mContext.getResources().getColor(R.color.black));
+        }
     }
 
     @Override
@@ -63,6 +71,9 @@ public class ChapterAdapter extends RecyclerView.Adapter <ChapterAdapter.Chapter
     }
     public void clearData(){
         data.clear();
+    }
+    public void setCurrentChapter(int number){
+        currentChapter = number;
     }
     public interface OnItemClickListener{
         void onItemClick(Chapter chapter);

@@ -3,7 +3,7 @@
     <string name="action_settings">Settings</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="add">添加</string>
-    <string name="batch_delete">批量删除</string>
+    <string name="book_management">管理书籍</string>
     <string name="search">搜索</string>
     <string name="delete_all">删除全部</string>
     <string name="remove_to_delete">左右滑动删除书籍</string>
@@ -15,4 +15,12 @@
     <string name="search_by_zhang">按章查找</string>
     <string name="search_by_jie">按节查找</string>
     <string name="search_by_hui">按回查找</string>
+    <string name="test_chapter_content">当这个世界就要崩溃，当星辰和阳光也熄灭，
+沉默已久的乱世之轮重新开始运转，英雄们即将相遇。
+伟大的创造，就此开始。
+这是一个悲哀的年代。
+英雄们刚刚诞生在钢铁的摇篮中，世界在动荡和战火中挣扎。
+北陆草原在蛮族七大部落控制之下，青阳部以北陆大君的身份君临草原。浩大的东陆属于古老的胤王朝，十六个诸侯国如铁桶般拱卫着神圣的帝都。
+青阳部世子吕归尘·阿苏勒出生的时候，三颗流星穿过北都城的星野，传说那是天神对世人的惩罚，草原将变成血红的颜色。但他只是一个清秀文弱的孩子，一心只想保护身边所爱的人们。直到有一天，青阳吕氏的黑暗历史隐隐露出端倪，青铜之血终将苏醒……
+“我曾经立誓要守护青阳和我所爱的人们，可是我错了，其实我的能力，只能守护那么区区几个人而已。”</string>
 </resources>

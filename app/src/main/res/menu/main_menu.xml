@@ -7,7 +7,7 @@
         android:icon="@drawable/ic_search_white_24dp"
         app:showAsAction="ifRoom"/>
     <item
-        android:title="@string/batch_delete"
+        android:title="@string/book_management"
         android:id="@+id/menu_delete"
         app:showAsAction="never"/>
     <item

@@ -6,9 +6,15 @@
     <color name="colorPrimaryLightest">#E3F2FD</color>
     <color name="colorAccent">#FF4081</color>
     <color name= "transparent">#00000000</color>
-    <color name="blueGrey">#546E7A</color>
-    <color name="blueGreyDark">#455A64</color>
+    <color name="nightColorPrimary">#555555</color>
+    <color name="nightColorPrimaryDark">#424242</color>
+    <color name="nightColorPrimaryLight">#757575</color>
     <color name="black">#0f0b02</color>
     <color name="white">#fbf0d9</color>
     <color name="pure_white">#FFFFFF</color>
+    <color name="dayModeBackgroundColor">#FCECDF</color>
+    <color name="dayModeTextColor">#424242</color>
+    <color name="nightModeBackgroundColor">#424242</color>
+    <color name="nightModeTextColor">#E0E0E0</color>
+
 </resources>

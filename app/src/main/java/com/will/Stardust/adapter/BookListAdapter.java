@@ -1,18 +1,28 @@
 package com.will.Stardust.adapter;
 
 import android.content.Context;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.TranslateAnimation;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.will.RemovableView;
 import com.will.Stardust.R;
 import com.will.Stardust.bean.Book;
+import com.will.Stardust.common.SPHelper;
 import com.will.Stardust.db.DBHelper;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +35,6 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.BookVi
     private Context mContext;
     private RecyclerView mRecyclerView;
     private int lastAnimatedIndex = -1;
-    private TranslateAnimation animation;
     private boolean allowMove;
     private ClickCallback mCallback;
     public BookListAdapter(Context context){
@@ -40,9 +49,21 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.BookVi
 
     @Override
     public void onBindViewHolder(BookViewHolder holder, int position) {
-        holder.text.setText(data.get(position).getBookName());
+        Book book = data.get(position);
+        String bookName = book.getBookName().substring(0,book.getBookName().lastIndexOf("."));
+        holder.title.setText(bookName   );
+        holder.preview.setText(getPreview(book));
+        holder.progressBar.setMax(100);
+        int progress = getProgress(book);
+        holder.progressBar.setProgress(progress);
+        holder.progressText.setText(progress+"%");
+        if(allowMove){
+            holder.cardView.setCardBackgroundColor(mContext.getResources().getColor(R.color.colorPrimaryLightest));
+        }else{
+            holder.cardView.setCardBackgroundColor(null);
+        }
         ((RemovableView)holder.itemView).disallowMove(!allowMove);
-        //animate(holder.itemView,position);
+        animate(holder.itemView,position);
     }
 
     @Override
@@ -53,10 +74,16 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.BookVi
 
 
     class BookViewHolder extends RecyclerView.ViewHolder{
-        public TextView text;
+        public TextView title,preview,progressText;
+        public ProgressBar progressBar;
+        public CardView cardView;
         BookViewHolder(View view){
             super(view);
-            text = (TextView) view.findViewById(R.id.book_item_text);
+            title = (TextView) view.findViewById(R.id.main_book_item_title);
+            preview =(TextView) view.findViewById(R.id.main_book_item_preview);
+            progressText = (TextView) view.findViewById(R.id.main_book_item_progress_text);
+            progressBar = (ProgressBar) view.findViewById(R.id.main_book_item_progress_bar);
+            cardView = (CardView) view.findViewById(R.id.main_book_item_card_view);
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -108,15 +135,15 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.BookVi
         DBHelper.getInstance().saveBook(temp);
     }
     private void removeItem(int position){
-        DBHelper.getInstance().deleteBookWithChapters(data.remove(position));
+        Book book = data.remove(position);
+        DBHelper.getInstance().deleteBookWithChapters(book);
+        SPHelper.getInstance().deleteBookMark(book.getBookName());
         lastAnimatedIndex = position -1;
         notifyDataSetChanged();
     }
     private void animate(final View view,int position){
-        if(animation == null){
-            animation = new TranslateAnimation(mRecyclerView.getWidth()-view.getWidth(),0,0,0);
-            animation.setDuration(300);
-        }
+        final TranslateAnimation animation = new TranslateAnimation(view.getWidth(),0,0,0);
+        animation.setDuration(300);
         if(position > lastAnimatedIndex){
             view.setVisibility(View.INVISIBLE);
             mRecyclerView.postDelayed(new Runnable() {
@@ -131,7 +158,6 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.BookVi
     }
     public void clearData(){
         data.clear();
-        DBHelper.getInstance().clearAllData();
         notifyDataSetChanged();
     }
     @Override
@@ -150,7 +176,6 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.BookVi
     private void reloadData(){
         data.clear();
         data.addAll(DBHelper.getInstance().getAllBook());
-        notifyDataSetChanged();
     }
 
     public void setOnClickCallback(ClickCallback callback){
@@ -160,5 +185,39 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.BookVi
         void onClick(Book book);
         void onLongClick();
     }
-
+    private String getPreview(Book book){
+        String name = book.getBookName();
+        int position = SPHelper.getInstance().getBookmarkStart(name);
+        byte[] bytes = new byte[1024];
+        String preview = "";
+        File file = new File(book.getPath());
+        try{
+            RandomAccessFile randomAccessFile = new RandomAccessFile(file,"r");
+            MappedByteBuffer mappedByteBuffer = randomAccessFile.getChannel().map(FileChannel.MapMode.READ_ONLY,position,1024);
+            for(int t=0;t<1024;t++){
+                if(mappedByteBuffer.get(t) == 0x0a){
+                    mappedByteBuffer.position(t+1);
+                    bytes = new byte[1024-t-1];
+                    mappedByteBuffer.get(bytes);
+                    break;
+                }
+            }
+            preview = new String(bytes,"GBK");
+            randomAccessFile.close();
+        }catch (FileNotFoundException f){
+            f.printStackTrace();
+            Log.e("file not found","!");
+        }catch (IOException i ){
+            i.printStackTrace();
+        }
+        return preview;
+    }
+    private int getProgress(Book book){
+        File file = new File(book.getPath());
+        if(file.exists() && file.isFile()){
+            int currentPosition = SPHelper.getInstance().getBookmarkStart(book.getBookName());
+            return currentPosition *100/ (int) Math.max(file.length(),1);
+        }
+        return 0;
+    }
 }

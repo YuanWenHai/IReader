@@ -58,4 +58,12 @@ public class SPHelper {
         return bookmark.getInt(bookName+"end",0);
     }
 
+    public void clearAllBookMarkData(){
+        bookmarkEditor.clear().apply();
+    }
+
+
+    public void deleteBookMark(String bookName){
+        bookmarkEditor.remove(bookName).apply();
+    }
 }
