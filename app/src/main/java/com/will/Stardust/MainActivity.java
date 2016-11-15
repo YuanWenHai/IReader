@@ -12,7 +12,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.will.Stardust.adapter.BookListAdapter;
+import com.will.Stardust.Page.PageActivity;
 import com.will.Stardust.base.BaseActivity;
 import com.will.Stardust.bean.Book;
 import com.will.Stardust.common.SPHelper;
@@ -32,7 +32,7 @@ public class MainActivity extends BaseActivity {
     private static final int GET_DATA_REQUEST = 888;
     private static final int RESTART_REQUEST = 123;
     private Toast mToast;
-    private BookListAdapter mAdapter;
+    private MainAdapter mAdapter;
 
     private Toolbar toolbar;
     @Override
@@ -42,11 +42,11 @@ public class MainActivity extends BaseActivity {
         setContentView(R.layout.activity_main);
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.main_recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        mAdapter = new BookListAdapter(this);
-        mAdapter.setOnClickCallback(new BookListAdapter.ClickCallback() {
+        mAdapter = new MainAdapter(this);
+        mAdapter.setOnClickCallback(new MainAdapter.ClickCallback() {
             @Override
             public void onClick(Book book) {
-                Intent intent = new Intent(MainActivity.this,ReadingActivity.class);
+                Intent intent = new Intent(MainActivity.this,PageActivity.class);
                 intent.putExtra("book",book);
                 startActivityForResult(intent,RESTART_REQUEST);
             }
@@ -72,6 +72,7 @@ public class MainActivity extends BaseActivity {
             case R.id.menu_search:
                 Intent intent = new Intent(this, FileSearcherActivity.class);
                 intent.putExtra("keyword",".txt");
+                intent.putExtra("min", 50 * 1024);
                 startActivityForResult(intent, GET_DATA_REQUEST);
                 break;
             case R.id.menu_delete:

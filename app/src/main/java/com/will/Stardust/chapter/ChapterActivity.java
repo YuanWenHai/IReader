@@ -10,7 +10,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView;
-import com.will.Stardust.PageFactory;
+import com.will.Stardust.Page.PageFactory;
 import com.will.Stardust.R;
 import com.will.Stardust.base.BaseActivity;
 import com.will.Stardust.bean.Chapter;

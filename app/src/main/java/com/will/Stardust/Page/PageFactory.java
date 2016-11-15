@@ -1,17 +1,20 @@
 package com.will.Stardust.Page;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.os.BatteryManager;
+import android.util.DisplayMetrics;
 
-import com.will.Stardust.file.IReaderDB;
+import com.will.Stardust.R;
+import com.will.Stardust.View.PageView;
+import com.will.Stardust.bean.Book;
+import com.will.Stardust.common.SPHelper;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,106 +23,101 @@ import java.io.UnsupportedEncodingException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Vector;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by Will on 2016/2/2.
  */
 public class PageFactory {
-    private int displayHeight,displayWidth;//实际屏幕尺寸
+    private int screenHeight, screenWidth;//实际屏幕尺寸
     private int pageHeight,pageWidth;//文字排版页面尺寸
     private int lineNumber;//行数
     private int lineSpace = 3;//行距;
-    private int mapperFileLength;//映射到内存中Book的字节数
+    private int fileLength;//映射到内存中Book的字节数
     private int fontSize ;
-    private int margin = 30;//文字显示距离屏幕实际尺寸的偏移量
-    private Paint myPaint;
+    private static final int margin = 30;//文字显示距离屏幕实际尺寸的偏移量
+    private Paint mPaint;
     private int begin;//当前阅读的字节数_开始
     private int end;//当前阅读的字节数_结束
-    private static MappedByteBuffer mappedFile;//映射到内存中的文件
+    private MappedByteBuffer mappedFile;//映射到内存中的文件
     private RandomAccessFile randomFile;//关闭Random流时使用
-    private Vector<String> content = new Vector<String>();
-    private Bitmap pageBackground;
-    private int position1 = 0;
-    private int position2 = 0;
-    private String keyWord = "章";
-    private IReaderDB iReaderDB ;
-    private String bookName;
-    private static String wholeString = "none";
+
     private String code = "GBK";
-    private boolean isNightMode = false;
-    private int keywordPos = 0;
-    private int nowPos;
-    private String searchKey = "";
-    private String level = "";
-    private Context context;
-    private int width;
-    private ArrayList<Integer> chapterPositions;
-    public String test;
-    public int stringPosition;
-    public PageFactory(int height, int width, int size, int fontColor){
-        displayHeight = height;
-        displayWidth = width;
-        fontSize = size;
-        pageHeight = displayHeight - margin*2 - fontSize;
-        pageWidth = displayWidth -margin*2;
-        myPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        myPaint.setTextSize(fontSize);
-        myPaint.setColor(fontColor);
+    private Context mContext;
+
+    private SPHelper spHelper = SPHelper.getInstance();
+    private boolean isNightMode = spHelper.isNightMode();
+    private PageView mView;
+    private Canvas mCanvas;
+    private String batteryLevel = "";
+    private ArrayList<String> content = new ArrayList<>();
+    private BroadcastReceiver batteryReceiver;
+    private Book book;
+
+    private static PageFactory instance;
+
+    public static PageFactory getInstance(PageView view,Book book){
+        if(instance == null){
+            synchronized (PageFactory.class){
+                if(instance == null){
+                    instance = new PageFactory(view);
+                    instance.openBook(book);
+                }
+            }
+        }
+        return instance;
+    }
+    public static PageFactory getInstance(){
+        return instance;
+    }
+    private PageFactory(PageView view){
+        DisplayMetrics metrics = new DisplayMetrics();
+        mContext = view.getContext();
+        mView = view;
+
+        ((Activity)mContext).getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        screenHeight = metrics.heightPixels;
+        screenWidth = metrics.widthPixels;
+        fontSize = spHelper.getFontSize();
+        pageHeight = screenHeight - margin*2 - fontSize;
+        pageWidth = screenWidth -margin*2;
         lineNumber = pageHeight/(fontSize+lineSpace);
 
+        mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mPaint.setTextSize(fontSize);
+        mPaint.setColor(isNightMode ? mContext.getResources().getColor(R.color.nightModeTextColor) :
+                mContext.getResources().getColor(R.color.dayModeTextColor));
+
+        Bitmap bitmap = Bitmap.createBitmap(screenWidth,screenHeight, Bitmap.Config.ARGB_8888);
+        mView.setBitmap(bitmap);
+        mCanvas = new Canvas(bitmap);
+
+        registerBatteryReceiver();
     }
-    public PageFactory(){
-    }
-    public void openBook(String path,int[] position){
-        begin = position[0];
-        end = position[1];
-        File file = new File(path);
-        mapperFileLength = (int) file.length();
+
+    private void openBook(Book book){
+        this.book = book;
+        begin = spHelper.getBookmarkStart(book.getBookName());
+        end = spHelper.getBookmarkEnd(book.getBookName());
+        File file = new File(book.getPath());
+        fileLength = (int) file.length();
             try {
                 randomFile = new RandomAccessFile(file, "r");
-                mappedFile = randomFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, (long) mapperFileLength);
+                mappedFile = randomFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, (long) fileLength);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    byte[] bookByte = new byte[mapperFileLength];
-                    for (int i = 0; i < mapperFileLength; i++) {
-                        bookByte[i] = mappedFile.get(i);
-                    }
-                    try {
-                        wholeString = new String(bookByte, code);
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }).start();
     }
     //向后读取一个段落，返回二进制数组
     private byte[] readParagraphForward( int end){
-        /*int i = end;
-        byte temp ;
-        while(i<mapperFileLength){
-            temp = mappedFile.get(i++);
-            if (temp == 0x0a){
-                break;
-            }
-        }
-        int size = i - end ;
-        byte[] byteTemp = new byte[size];
-        for(i = 0;i<size;i++){
-            byteTemp[i] = mappedFile.get(end+i);
-        }
-        return byteTemp;*/
-        byte b0, b1 ;
+
+        byte b0;
         int i = end;
-        while(i < mapperFileLength){
+        while(i < fileLength){
             b0 = mappedFile.get(i++);
             if(b0 == 0x0a){
                 break;
@@ -135,24 +133,7 @@ public class PageFactory {
     }
     //向前读取一个段落
     private byte[] readParagraphBack(int begin){
-        /*int i = begin - 1;
-        byte temp;
-        while(i>0){
-            temp = mappedFile.get(i);
-            if(temp == 0x0a && i != begin -1 ){
-                i = i++;
-                break;
-            }
-            i--;
-        }
-        int size = begin - i;
-        byte[] byteTemp = new byte[size];
-        for(int j = 0;j<size;j++){
-            byteTemp[j] = mappedFile.get(j+i);
-        }
-        return byteTemp;*/
-        // TODO Auto-generated method stub
-        byte b0, b1 ;
+        byte b0 ;
         int i = begin -1 ;
         while(i > 0){
             b0 = mappedFile.get(i);
@@ -171,10 +152,9 @@ public class PageFactory {
 
     }
     //获取后一页的内容
-private Vector<String> pageDown(){
+private void pageDown(){
     String strParagraph = "";
-    Vector<String> lines = new Vector<String>();
-    while((lines.size()<lineNumber) && (end<mapperFileLength)){
+    while((content.size()<lineNumber) && (end< fileLength)){
         byte[] byteTemp = readParagraphForward(end);
         end += byteTemp.length;
         try{
@@ -184,11 +164,11 @@ private Vector<String> pageDown(){
         }
         strParagraph = strParagraph.replaceAll("\r\n","  ");
         strParagraph = strParagraph.replaceAll("\n", "  ");
-        while(strParagraph.length()>0){
-            int size = myPaint.breakText(strParagraph,true,pageWidth,null);
-            lines.add(strParagraph.substring(0,size));
+        while(strParagraph.length   ()>0){
+            int size = mPaint.breakText(strParagraph,true,pageWidth,null);
+            content.add(strParagraph.substring(0,size));
             strParagraph = strParagraph.substring(size);
-            if(lines.size() >= lineNumber){
+            if(content.size() >= lineNumber){
                 break;
             }
         }
@@ -201,14 +181,12 @@ private Vector<String> pageDown(){
             }
 
     }
-    return lines;
 }
     //上翻页
-    private Vector<String>pageUp(){
+    private  void pageUp(){
         String strParagraph = "";
-        Vector<String> lines = new Vector<String>();
-        while(lines.size()<lineNumber && begin>0){
-            Vector<String> parLines = new Vector<String>();
+        List<String> tempList = new ArrayList<>();
+        while(tempList.size()<lineNumber && begin>0){
             byte[] byteTemp = readParagraphBack(begin);
             begin -= byteTemp.length;
             try{
@@ -219,357 +197,174 @@ private Vector<String> pageDown(){
             strParagraph = strParagraph.replaceAll("\r\n","  ");
             strParagraph = strParagraph.replaceAll("\n","  ");
             while(strParagraph.length() > 0){
-                int size = myPaint.breakText(strParagraph,true,pageWidth,null);
-                parLines.add(strParagraph.substring(0, size));
+                int size = mPaint.breakText(strParagraph,true,pageWidth,null);
+                tempList.add(strParagraph.substring(0, size));
                 strParagraph = strParagraph.substring(size);
+                if(tempList.size() >= lineNumber){
+                    break;
+                }
             }
-            lines.addAll(0,parLines);
-            while(lines.size()>lineNumber){
-             try{
-                 begin += lines.get(0).getBytes(code).length;
-                 lines.remove(0);
-             }catch(UnsupportedEncodingException e){
-                 e.printStackTrace();
-             }
+            if(strParagraph.length() > 0){
+              try{
+                  begin+= strParagraph.getBytes(code).length;
+              }catch (UnsupportedEncodingException u){
+                  u.printStackTrace();
+              }
             }
         }
-        end = begin;//通过以上一系列运行，得到向上翻页后的第一个position，并将其赋给end，再调用pageDown方法。
-        return lines;
     }
-    public void printPage(final Canvas  canvas, Context context){
-        if( content.size() == 0){
-            end = begin;
-            content = pageDown();
-        }
+    public void printPage(){
         if(content.size()>0){
             int y = margin;
             if(isNightMode){
-                canvas.drawColor(Color.BLACK);
+                mCanvas.drawColor(mContext.getResources().getColor(R.color.nightModeBackgroundColor));
             }else{
-                if(pageBackground != null){
-                    Rect rect = new  Rect(0,0,displayWidth,displayHeight);
-                    canvas.drawBitmap(pageBackground,null,rect,null);
-                }else{
-                    canvas.drawColor(Color.rgb(252,236,223));
-                }
+                mCanvas.drawColor(mContext.getResources().getColor(R.color.dayModeBackgroundColor));
             }
             for(String line : content){
                 y += fontSize+lineSpace;
-                canvas.drawText(line,margin,y,myPaint);
+                mCanvas.drawText(line,margin,y, mPaint);
             }
-            float percent = (float) begin /mapperFileLength*100;
+            float percent = (float) begin / fileLength *100;
             DecimalFormat format = new DecimalFormat("#0.00");
-            String strPercent = format.format(percent);
-            int length = (int ) myPaint.measureText(strPercent);
-            canvas.drawText(strPercent + "%", (displayWidth - length) / 2, displayHeight - margin, myPaint);
+            String readingProgress = format.format(percent)+"%";
+            int length = (int ) mPaint.measureText(readingProgress);
+            mCanvas.drawText(readingProgress, (screenWidth - length) / 2, screenHeight - margin, mPaint);
+
             //显示时间
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTimeInMillis(System.currentTimeMillis());
-            int hour = calendar.get(Calendar.HOUR_OF_DAY);
-            int minute = calendar.get(Calendar.MINUTE);
-            canvas.drawText("Time:" + hour + ":" + minute, margin, displayHeight - margin, myPaint);
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm", Locale.CHINA);
+            String time = simpleDateFormat.format(new Date(System.currentTimeMillis()));
+            mCanvas.drawText("Time:"+time,margin, screenHeight -margin, mPaint);
+
             //显示电量
-            IntentFilter intentFilter = new IntentFilter();
-            intentFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
-             BroadcastReceiver receiver  = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    PageFactory.this.context = context;
-                    int scaledlevel = intent.getIntExtra(BatteryManager.EXTRA_LEVEL,-1);
-                    int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-                    level = "电量："+String.valueOf(scaledlevel*100/scale);
-                    float[] widths = new float[level.length()];
-                    width = 0;
-                    myPaint.getTextWidths(level, widths);
-                    for(int x = 0;x<level.length();x++){
-                        width += Math.ceil(widths[x]);
-                    }
-                    canvas.drawText(level, displayWidth - margin - width, displayHeight - margin, myPaint);
-                    context.unregisterReceiver(this);
-                }
-            };
-            context.registerReceiver(receiver, intentFilter);
+            float[] widths = new float[batteryLevel.length()];
+            float batteryLevelStringWidth = 0;
+            mPaint.getTextWidths(batteryLevel, widths);
+            for(float f : widths){
+                batteryLevelStringWidth += f;
+            }
+            mCanvas.drawText(batteryLevel, screenWidth - margin - batteryLevelStringWidth, screenHeight - margin, mPaint);
+            mView.invalidate();
         }
     }
-    public void printPage(Canvas canvas){
-        if( content.size() == 0){
-            end = begin;
-            content = pageDown();
-        }
-        if(content.size()>0){
-            int y = margin;
-            if(isNightMode){
-                canvas.drawColor(Color.BLACK);
-            }else{
-                if(pageBackground != null){
-                    Rect rect = new  Rect(0,0,displayWidth,displayHeight);
-                    canvas.drawBitmap(pageBackground,null,rect,null);
-                }else{
-                    canvas.drawColor(Color.rgb(252,236,223));
-                }
+    private void registerBatteryReceiver(){
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
+        batteryReceiver  = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                int scaledLevel = intent.getIntExtra(BatteryManager.EXTRA_LEVEL,-1);
+                int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+                batteryLevel = "电量："+String.valueOf(scaledLevel*100/scale);
             }
-            for(String line : content){
-                y += fontSize+lineSpace;
-                canvas.drawText(line,margin,y,myPaint);
-            }
-            float percent = (float) begin /mapperFileLength*100;
-            DecimalFormat format = new DecimalFormat("#0.00");
-            String strPercent = format.format(percent);
-            int length = (int ) myPaint.measureText(strPercent);
-            canvas.drawText(strPercent + "%", (displayWidth - length) / 2, displayHeight - margin, myPaint);
-            //显示时间
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTimeInMillis(System.currentTimeMillis());
-            int hour = calendar.get(Calendar.HOUR_OF_DAY);
-            int minute = calendar.get(Calendar.MINUTE);
-            canvas.drawText("Time:"+hour+":"+minute,margin,displayHeight-margin,myPaint);
-            //显示已得到的电量
-            canvas.drawText(level, displayWidth - margin - width, displayHeight - margin, myPaint);
-            //显示电量
-            IntentFilter intentFilter = new IntentFilter();
-            intentFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
-            final BroadcastReceiver receiver  = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    context.unregisterReceiver(this);
-                    int scaledlevel = intent.getIntExtra(BatteryManager.EXTRA_LEVEL,-1);
-                    int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-                    level = "电量："+String.valueOf(scaledlevel*100/scale);
-
-                }
-            };
-            float[] widths = new float[level.length()];
-             width = 0;
-            myPaint.getTextWidths(level, widths);
-            for(int x = 0;x<level.length();x++){
-                width += Math.ceil(widths[x]);
-            }
-            //canvas.drawText(level,displayWidth-margin-width,displayHeight-margin,myPaint);
-            context.registerReceiver(receiver,intentFilter);
-
-        }
+        };
+        mContext.registerReceiver(batteryReceiver,intentFilter);
     }
     public void nextPage(){
-        if(end >= mapperFileLength){
+        if(end >= fileLength){
             return;
         }else{
             content.clear();
             begin = end;
-            content = pageDown();
+            pageDown();
         }
-
+        printPage();
     }
     public void prePage(){
         if(begin <= 0){
             return;
         }else{
             content.clear();
-             pageUp();//可能有错\
-            content = pageDown();
+            pageUp();
+            end = begin;
+            pageDown();
         }
+        printPage();
     }
-    public int[] getPosition(){
-        int[] p = {begin,end};
-        return p;
+    public void saveBookmark(){
+        SPHelper.getInstance().setBookmarkEnd(book.getBookName(),begin);
+        SPHelper.getInstance().setBookmarkStart(book.getBookName(),begin);
     }
     public void setFontSize(int size){
+        if(size < 15){
+            return;
+        }
         fontSize = size;
-        myPaint.setTextSize(fontSize);
+        mPaint.setTextSize(fontSize);
+        pageHeight =  screenHeight - margin*2 - fontSize;
         lineNumber = pageHeight/(fontSize+lineSpace);
         end = begin;
         nextPage();
+        SPHelper.getInstance().setFontSize(size);
+    }
+    public void increaseFontSize(){
+       setFontSize(fontSize+1);
+    }
+    public void decreaseFontSize(){
+        setFontSize(fontSize-1);
     }
     public int getFontSize(){
         return fontSize;
     }
-    public void setPercent(float percent){
-        if(percent <= 100){
-        float position = percent*mapperFileLength/100;
-        end = (int) position;
-        if(end ==0) {
+    public int getFileLength(){
+        return fileLength;
+    }
+    public MappedByteBuffer getMappedFile(){
+        return mappedFile;
+    }
+
+    public void setPosition(int position){
+        //begin = position;
+        //prePage();
+        end = position;
+        nextPage();
+    }
+    public int getProgress(){
+        return begin*100/ fileLength;
+    }
+    public int setProgress(int i){
+        int origin = begin;
+        end = fileLength * i/100;
+        if(end == fileLength){
+            end--;
+        }
+        if(end == 0){
             nextPage();
         }else{
             nextPage();
             prePage();
             nextPage();
         }
-        }
+        return origin;
     }
-    public void setPosition(int position){
-        end = position;
-        nextPage();
-    }
-    public void setPageBackground(Canvas canvas,Bitmap bitmap){
-        pageBackground = bitmap;
-        printPage(canvas);
-    }
-    public ArrayList<String> getChapter(){
-        ArrayList<String> list = new ArrayList<String>();
-        chapterPositions = new ArrayList<Integer>();
-        Pattern pattern = Pattern.compile("^[0-9零一二三四五六七八九十百千万 ]+$");
-        int index = 0;
-        int key;
 
-        do{
-            index = wholeString.indexOf("第",index+1);
-            key = wholeString.indexOf(keyWord,index);
-            if(index != -1 && key != -1){
-                Matcher matcher = pattern.matcher(wholeString.substring(index+1,key));
-                if(matcher.matches()){
-                    list.add(wholeString.substring(index,wholeString.indexOf("\n",index)));
-                    chapterPositions.add(index);
-                }
-            }
-        }while(index != -1 && key != -1);
-        return list;
-    }
-    public ArrayList<Integer>getChapterPositions(){
-        return chapterPositions;
-    }
-    public void setKeyWord(String keyWord){
-        this.keyWord = keyWord;
-    }
-    private int getByte(String string){
-        byte[] bytes;
-        int num = 0;
-        try{
-
-            bytes = string.getBytes(code);
-            num = bytes.length;
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-        return num;
-    }
-    public int getPositionFromChapter(String chapterName){
-        int position = wholeString.indexOf(chapterName);
-        String temp = wholeString.substring(0,position);
-        int pos = 0;
-        try{
-            byte[] bytes =temp.getBytes(code);
-            pos = bytes.length;
-        }catch (UnsupportedEncodingException u){
-            u.printStackTrace();
-        }
-        return pos;
-    }
-    private int getPositionFromKeyword(String keyword,int p){
-        stringPosition = wholeString.indexOf(keyword,p+1);
-        if(stringPosition != -1) {
-            String temp = wholeString.substring(0, stringPosition);
-            int pos = 0;
-
-            try {
-                byte[] bytes = temp.getBytes(code);
-                pos = bytes.length;
-            } catch (UnsupportedEncodingException u) {
-                u.printStackTrace();
-            }
-            return pos;
-        }else{
-            return stringPosition;
-        }
-    }
-    public void setNightMode(Canvas canvas,boolean which){
-        if(which){
-            myPaint.setColor(Color.rgb(190, 190, 190));
-        }else{
-            myPaint.setColor(Color.BLACK);
-        }
+    public void setNightMode(boolean which){
         isNightMode = which;
-        printPage(canvas );
+        mPaint.setColor(which ? mContext.getResources().getColor(R.color.nightModeTextColor) :
+                mContext.getResources().getColor(R.color.dayModeTextColor));
+        printPage( );
     }
-    public int searchContent(Canvas canvas,String key,String mode){
-        if(mode.equals("content")) {
-            searchKey = key;
-            keywordPos = getPositionFromKeyword(key,stringPosition);
-            if(keywordPos != -1){
-            setPosition(keywordPos);
-            }else{
-                return keywordPos;
-            }
-        }else{
-            keywordPos = getPositionFromKeyword(searchKey,stringPosition);
-            if(keywordPos != -1) {
-                setPosition(keywordPos);
-            }else{
-                return keywordPos;
-            }
-        }
-        printPage(canvas );
-        return 0;
+    public Book getBook(){
+        return book;
     }
-    public void returnToOriginPos(Canvas canvas){
-        setPosition(nowPos);
-        printPage(canvas );
+    public String getCode(){
+        return code;
     }
-    public void resetKeywordPos(){
-        stringPosition = 0;
+    public int getCurrentEnd(){
+        return end;
     }
-    public void saveNowPos(){
-        nowPos = begin;
-    }
-    public void closeStream(){
-        if(randomFile != null){
-        try{
-            randomFile.close();
-        }catch (IOException i){
-            i.printStackTrace();
-        }
-        }
-    }
-    public void setFontColor(Canvas canvas,int color){
-        myPaint.setColor(color);
-        printPage(canvas);
-    }
-    public void initializeBook(String path){
-        if(wholeString.equals("none")){
-        openBook(path);
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    byte[] bookByte = new byte[mapperFileLength];
-                    for(int i = 0;i<mapperFileLength;i++){
-                        bookByte[i] = mappedFile.get(i);
-                    }
-                    try{
-                        wholeString = new String(bookByte,code);
-                    }catch(UnsupportedEncodingException e){
-                        e.printStackTrace();
-                    }
-                }
-            }).start();
-
-        }
-    }
-    public void openBook(String path){
-        File file = new File(path);
-        mapperFileLength = (int)file.length();
-        try {
-            randomFile = new RandomAccessFile(file, "r");
-            mappedFile = randomFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, (long) mapperFileLength);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
-    public int getCurrentWordNumber(int position){
-        if(position>0){
-        String temp = "";
-        byte[] bytes = new byte[position];
-        for(int i = 0;i<position;i++){
-            bytes[i] = mappedFile.get(i);
-        }
-        try{
-            temp = new String(bytes,"GBK");
-        }catch(UnsupportedEncodingException u){
-            u.printStackTrace();
-        }
-        int number = temp.length();
-        return  number;
-        }
-        return -1;
-    }
-    public int getBegin(){
+    public int getCurrentBegin(){
         return begin;
+    }
+    public static void close(){
+        if(instance != null){
+            instance.mContext.unregisterReceiver(instance.batteryReceiver);
+            try{
+                instance.randomFile.close();
+            }catch (IOException i){
+                i.printStackTrace();
+            }
+            instance = null;
+        }
     }
 }

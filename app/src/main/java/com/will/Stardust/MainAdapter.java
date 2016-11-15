@@ -1,4 +1,4 @@
-package com.will.Stardust.adapter;
+package com.will.Stardust;
 
 import android.content.Context;
 import android.support.v7.widget.CardView;
@@ -12,7 +12,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.will.RemovableView;
-import com.will.Stardust.R;
 import com.will.Stardust.bean.Book;
 import com.will.Stardust.common.SPHelper;
 import com.will.Stardust.db.DBHelper;
@@ -30,14 +29,14 @@ import java.util.List;
  * Created by will on 2016/10/29.
  */
 
-public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.BookViewHolder> {
+public class MainAdapter extends RecyclerView.Adapter<MainAdapter.BookViewHolder> {
     private List<Book> data;
     private Context mContext;
     private RecyclerView mRecyclerView;
     private int lastAnimatedIndex = -1;
     private boolean allowMove;
     private ClickCallback mCallback;
-    public BookListAdapter(Context context){
+    public MainAdapter(Context context){
         data = DBHelper.getInstance().getAllBook();
         //data = getTestData();
         mContext = context;

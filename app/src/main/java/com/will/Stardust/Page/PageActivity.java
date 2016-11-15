@@ -1,4 +1,4 @@
-package com.will.Stardust;
+package com.will.Stardust.Page;
 
 import android.content.Intent;
 import android.graphics.PorterDuff;
@@ -20,6 +20,7 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.will.Stardust.*;
 import com.will.Stardust.View.PageView;
 import com.will.Stardust.base.BaseActivity;
 import com.will.Stardust.bean.Book;
@@ -30,7 +31,7 @@ import com.will.Stardust.common.SPHelper;
  * Created by will on 2016/11/3.
  */
 
-public class ReadingActivity extends BaseActivity implements Animation.AnimationListener{
+public class PageActivity extends BaseActivity implements Animation.AnimationListener{
     private static final int REQUEST_CODE = 666;
     private PageFactory mPageFactory;
     private PageView pageView;

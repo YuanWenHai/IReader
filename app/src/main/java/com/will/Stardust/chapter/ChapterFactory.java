@@ -4,7 +4,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
-import com.will.Stardust.PageFactory;
+import com.will.Stardust.Page.PageFactory;
 import com.will.Stardust.bean.Book;
 import com.will.Stardust.bean.Chapter;
 import com.will.Stardust.common.Util;
