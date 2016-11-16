@@ -14,6 +14,7 @@ import android.widget.TextView;
 import com.will.RemovableView;
 import com.will.Stardust.bean.Book;
 import com.will.Stardust.common.SPHelper;
+import com.will.Stardust.common.Util;
 import com.will.Stardust.db.DBHelper;
 
 import java.io.File;
@@ -133,6 +134,8 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.BookViewHolder
         notifyDataSetChanged();
         DBHelper.getInstance().saveBook(temp);
     }
+    //获取并写入编码
+
     private void removeItem(int position){
         Book book = data.remove(position);
         DBHelper.getInstance().deleteBookWithChapters(book);
@@ -201,7 +204,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.BookViewHolder
                     break;
                 }
             }
-            preview = new String(bytes,"GBK");
+            preview = new String(bytes, Util.getEncoding(book));
             randomAccessFile.close();
         }catch (FileNotFoundException f){
             f.printStackTrace();

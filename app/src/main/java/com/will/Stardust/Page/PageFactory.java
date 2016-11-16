@@ -1,7 +1,6 @@
 package com.will.Stardust.Page;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -15,6 +14,7 @@ import com.will.Stardust.R;
 import com.will.Stardust.View.PageView;
 import com.will.Stardust.bean.Book;
 import com.will.Stardust.common.SPHelper;
+import com.will.Stardust.common.Util;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,16 +46,14 @@ public class PageFactory {
     private MappedByteBuffer mappedFile;//映射到内存中的文件
     private RandomAccessFile randomFile;//关闭Random流时使用
 
-    private String code = "GBK";
+    private String code;
     private Context mContext;
 
     private SPHelper spHelper = SPHelper.getInstance();
     private boolean isNightMode = spHelper.isNightMode();
     private PageView mView;
     private Canvas mCanvas;
-    private String batteryLevel = "";
     private ArrayList<String> content = new ArrayList<>();
-    private BroadcastReceiver batteryReceiver;
     private Book book;
 
     private static PageFactory instance;
@@ -66,6 +64,7 @@ public class PageFactory {
                 if(instance == null){
                     instance = new PageFactory(view);
                     instance.openBook(book);
+                    instance.code = Util.getEncoding(book);
                 }
             }
         }
@@ -96,7 +95,6 @@ public class PageFactory {
         mView.setBitmap(bitmap);
         mCanvas = new Canvas(bitmap);
 
-        registerBatteryReceiver();
     }
 
     private void openBook(Book book){
@@ -234,9 +232,11 @@ private void pageDown(){
             //显示时间
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm", Locale.CHINA);
             String time = simpleDateFormat.format(new Date(System.currentTimeMillis()));
-            mCanvas.drawText("Time:"+time,margin, screenHeight -margin, mPaint);
+            mCanvas.drawText("时间:"+time,margin, screenHeight -margin, mPaint);
 
             //显示电量
+
+            String batteryLevel = getBatteryLevel();
             float[] widths = new float[batteryLevel.length()];
             float batteryLevelStringWidth = 0;
             mPaint.getTextWidths(batteryLevel, widths);
@@ -247,18 +247,12 @@ private void pageDown(){
             mView.invalidate();
         }
     }
-    private void registerBatteryReceiver(){
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
-        batteryReceiver  = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                int scaledLevel = intent.getIntExtra(BatteryManager.EXTRA_LEVEL,-1);
-                int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-                batteryLevel = "电量："+String.valueOf(scaledLevel*100/scale);
-            }
-        };
-        mContext.registerReceiver(batteryReceiver,intentFilter);
+
+    private String getBatteryLevel(){
+        Intent batteryIntent = mContext.registerReceiver(null,new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        int scaledLevel = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL,-1);
+        int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+        return "电量："+String.valueOf(scaledLevel*100/scale);
     }
     public void nextPage(){
         if(end >= fileLength){
@@ -358,7 +352,6 @@ private void pageDown(){
     }
     public static void close(){
         if(instance != null){
-            instance.mContext.unregisterReceiver(instance.batteryReceiver);
             try{
                 instance.randomFile.close();
             }catch (IOException i){

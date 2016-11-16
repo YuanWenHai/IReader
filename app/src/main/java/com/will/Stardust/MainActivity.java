@@ -69,20 +69,22 @@ public class MainActivity extends BaseActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
-            case R.id.menu_search:
+            case R.id.main_menu_search:
                 Intent intent = new Intent(this, FileSearcherActivity.class);
                 intent.putExtra("keyword",".txt");
                 intent.putExtra("min", 50 * 1024);
+                int theme = SPHelper.getInstance().isNightMode()? R.style.SearcherNightTheme : R.style.SearcherDayTheme;
+                intent.putExtra("theme",theme);
                 startActivityForResult(intent, GET_DATA_REQUEST);
                 break;
-            case R.id.menu_delete:
+            case R.id.main_menu_management:
                 if(mAdapter.isAllowMove()){
                   turnIntoMoveMode(false);
                 }else{
                    turnIntoMoveMode(true);
                 }
                 break;
-            case R.id.menu_delete_all:
+            case R.id.main_menu_delete_all:
                 showDeleteAllDialog();
         }
 

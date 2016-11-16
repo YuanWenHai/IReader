@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.will.Stardust.base.MyApplication;
+import com.will.Stardust.bean.Book;
 
 /**
  * Created by will on 2016/11/3.
@@ -62,7 +63,12 @@ public class SPHelper {
         bookmarkEditor.clear().apply();
     }
 
-
+    public String getBookEncoding(Book book){
+        return config.getString(book.getPath(),"");
+    }
+    public void setBookEncoding(Book book,String encoding){
+        configEditor.putString(book.getPath(),encoding).apply();
+    }
     public void deleteBookMark(String bookName){
         bookmarkEditor.remove(bookName).apply();
     }

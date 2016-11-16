@@ -1,5 +1,7 @@
 package com.will.Stardust.Page;
 
+import android.animation.ArgbEvaluator;
+import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
@@ -11,7 +13,6 @@ import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.Animation;
@@ -20,7 +21,7 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.will.Stardust.*;
+import com.will.Stardust.R;
 import com.will.Stardust.View.PageView;
 import com.will.Stardust.base.BaseActivity;
 import com.will.Stardust.bean.Book;
@@ -71,7 +72,7 @@ public class PageActivity extends BaseActivity implements Animation.AnimationLis
         mPageFactory.nextPage();
 
 
-        pageView.setOnTouchListener(new View.OnTouchListener() {
+        /*pageView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
 
@@ -98,6 +99,43 @@ public class PageActivity extends BaseActivity implements Animation.AnimationLis
                 }
                 return true;
             }
+        });*/
+        pageView.setOnClickCallback(new PageView.OnClickCallback() {
+            @Override
+            public void onLeftClick() {
+               if(!hadOtherWidgetShown()){
+                   mPageFactory.prePage();
+               }
+            }
+
+            @Override
+            public void onMiddleClick() {
+               if(!hadOtherWidgetShown()){
+                   changeActionState();
+               }
+            }
+
+            @Override
+            public void onRightClick() {
+                if(!hadOtherWidgetShown()){
+                    mPageFactory.nextPage();
+                }
+            }
+        });
+        pageView.setOnScrollListener(new PageView.OnScrollListener() {
+            @Override
+            public void onLeftScroll() {
+                if(!hadOtherWidgetShown()){
+                    mPageFactory.nextPage();
+                }
+            }
+
+            @Override
+            public void onRightScroll() {
+                if(!hadOtherWidgetShown()){
+                    mPageFactory.prePage();
+                }
+            }
         });
         iniBottomSheetMenu();
     }
@@ -116,6 +154,21 @@ public class PageActivity extends BaseActivity implements Animation.AnimationLis
         }
     }
 
+    private boolean hadOtherWidgetShown(){
+        if(isAnimating){
+            return true;
+        }
+        if(!isActionBarHidden){
+            changeActionState();
+            return true;
+        }
+        if(bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED){
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            originPosition = -1;
+            return true;
+        }
+        return false;
+    }
     private void changeActionState(){
         if(isActionBarHidden){
             actionBar.setVisibility(View.VISIBLE);
@@ -187,12 +240,14 @@ public class PageActivity extends BaseActivity implements Animation.AnimationLis
             case R.id.page_menu_chapter:
                 final Intent intent = new Intent(this, ChapterActivity.class);
                 changeActionState();
-                pageView.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        startActivityForResult(intent,REQUEST_CODE);
-                    }
-                },300);
+                if(!isAnimating){
+                    pageView.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            startActivityForResult(intent,REQUEST_CODE);
+                        }
+                    },300);
+                }
                 break;
             case R.id.page_menu_overflow:
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
@@ -222,8 +277,10 @@ public class PageActivity extends BaseActivity implements Animation.AnimationLis
             //change toolbar
             toolbar.getMenu().getItem(0).setIcon(R.drawable.ic_brightness_6_white_24dp);
             mPageFactory.setNightMode(true);
-            toolbar.setBackgroundColor(getResources().getColor(R.color.nightColorPrimary));
-            statusBar.setBackgroundColor(getResources().getColor(R.color.nightColorPrimaryDark));
+            animateViewColorChanging(getResources().getColor(R.color.colorPrimary),
+                    getResources().getColor(R.color.nightColorPrimary),300,toolbar);
+            animateViewColorChanging(getResources().getColor(R.color.colorPrimaryDark),
+                    getResources().getColor(R.color.nightColorPrimaryDark),300,statusBar);
             //change bottom sheet
             increaseFont.setBackgroundTintList(getResources().getColorStateList(R.color.nightColorPrimaryLight));
             decreaseFont.setBackgroundTintList(getResources().getColorStateList(R.color.nightColorPrimaryLight));
@@ -235,8 +292,10 @@ public class PageActivity extends BaseActivity implements Animation.AnimationLis
         }else{
             toolbar.getMenu().getItem(0).setIcon(R.drawable.ic_brightness_7_white_24dp);
             mPageFactory.setNightMode(false);
-            toolbar.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
-            statusBar.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
+            animateViewColorChanging(getResources().getColor(R.color.nightColorPrimary),
+                    getResources().getColor(R.color.colorPrimary),300,toolbar);
+            animateViewColorChanging(getResources().getColor(R.color.nightColorPrimaryDark),
+                    getResources().getColor(R.color.colorPrimaryDark),300,statusBar);
             //as above
             increaseFont.setBackgroundTintList(getResources().getColorStateList(R.color.colorPrimaryLight));
             decreaseFont.setBackgroundTintList(getResources().getColorStateList(R.color.colorPrimaryLight));
@@ -246,6 +305,19 @@ public class PageActivity extends BaseActivity implements Animation.AnimationLis
 
             SPHelper.getInstance().setNightMode(false);
         }
+    }
+    private void animateViewColorChanging(int fromColor, int toColor, int duration, final View... views){
+        ValueAnimator animator = ValueAnimator.ofObject(new ArgbEvaluator(),fromColor,toColor);
+        animator.setDuration(duration);
+        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                for(View view : views){
+                    view.setBackgroundColor((int)animation.getAnimatedValue());
+                }
+            }
+        });
+        animator.start();
     }
     private void iniBottomSheetMenu(){
         bottomSheet = (CardView) findViewById(R.id.reading_activity_bottom_sheet);
