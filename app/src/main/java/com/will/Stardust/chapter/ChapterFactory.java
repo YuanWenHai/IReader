@@ -79,7 +79,6 @@ public class ChapterFactory {
             Chapter chapter;
             Log.e("chapters","start loading");
             while ((temp = reader.readLine()) != null) {
-
                 if(temp.contains("第")&&temp.contains(keyword)){
                     chapter = new Chapter();
                     chapter.setChapterName(temp);

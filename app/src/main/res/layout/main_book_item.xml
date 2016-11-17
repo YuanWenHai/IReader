@@ -34,6 +34,7 @@
                     android:gravity="center"
                     android:layout_marginTop="15dp"
                     tools:text="九州缥缈录"
+                    android:maxLines="1"
                     android:textColor="@color/black"
                     android:textSize="18sp"/>
                 <TextView

@@ -33,7 +33,7 @@ public class Util {
         if(encoding.isEmpty()){
 
             UniversalDetector detector = new UniversalDetector(null);
-            byte[] bytes = new byte[8096];
+            byte[] bytes = new byte[1024];
             try{
                 BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(new File(book.getPath())));
                 int length;

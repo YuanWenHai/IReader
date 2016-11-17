@@ -9,6 +9,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.os.BatteryManager;
 import android.util.DisplayMetrics;
+import android.util.Log;
 
 import com.will.Stardust.R;
 import com.will.Stardust.View.PageView;
@@ -63,8 +64,8 @@ public class PageFactory {
             synchronized (PageFactory.class){
                 if(instance == null){
                     instance = new PageFactory(view);
-                    instance.openBook(book);
                     instance.code = Util.getEncoding(book);
+                    instance.openBook(book);
                 }
             }
         }
@@ -106,11 +107,13 @@ public class PageFactory {
             try {
                 randomFile = new RandomAccessFile(file, "r");
                 mappedFile = randomFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, (long) fileLength);
+                Log.e("content",new String(getNextParagraph(0),code));
             } catch (Exception e) {
                 e.printStackTrace();
+                Log.e("exception","!");
             }
     }
-    //向后读取一个段落，返回二进制数组
+    //向后读取一个段落，返回bytes
     private byte[] readParagraphForward( int end){
 
         byte b0;
@@ -128,6 +131,32 @@ public class PageFactory {
         }
         return buf;
 
+    }
+    private int testEnd = 0;
+    private int lineBreak;
+    private byte[] getNextParagraph(int end){
+        byte b0;
+        int before = 0;
+        int i = end;
+        while(i < fileLength){
+            b0 = mappedFile.get(i);
+            if(b0 == 0x0a && before ==0){
+                Log.e("before is"+before,"current is"+b0);
+                break;
+            }
+            before = b0;
+            i++;
+        }
+        int nParaSize = i - end + 1;
+        byte[] buf = new byte[nParaSize];
+        for (i = 0; i < nParaSize; i++) {
+            buf[i] =  mappedFile.get(end + i);
+        }
+        Log.e("buffer size",buf.length+"");
+        for(byte temp :buf){
+            Log.e("byte",temp+"");
+        }
+        return buf;
     }
     //向前读取一个段落
     private byte[] readParagraphBack(int begin){
@@ -162,7 +191,7 @@ private void pageDown(){
         }
         strParagraph = strParagraph.replaceAll("\r\n","  ");
         strParagraph = strParagraph.replaceAll("\n", "  ");
-        while(strParagraph.length   ()>0){
+        while(strParagraph.length() >  0){
             int size = mPaint.breakText(strParagraph,true,pageWidth,null);
             content.add(strParagraph.substring(0,size));
             strParagraph = strParagraph.substring(size);

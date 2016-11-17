@@ -21,8 +21,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -195,15 +193,8 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.BookViewHolder
         File file = new File(book.getPath());
         try{
             RandomAccessFile randomAccessFile = new RandomAccessFile(file,"r");
-            MappedByteBuffer mappedByteBuffer = randomAccessFile.getChannel().map(FileChannel.MapMode.READ_ONLY,position,1024);
-            for(int t=0;t<1024;t++){
-                if(mappedByteBuffer.get(t) == 0x0a){
-                    mappedByteBuffer.position(t+1);
-                    bytes = new byte[1024-t-1];
-                    mappedByteBuffer.get(bytes);
-                    break;
-                }
-            }
+            randomAccessFile.skipBytes(position);
+            randomAccessFile.read(bytes);
             preview = new String(bytes, Util.getEncoding(book));
             randomAccessFile.close();
         }catch (FileNotFoundException f){
