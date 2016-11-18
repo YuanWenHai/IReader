@@ -14,7 +14,6 @@ import android.widget.TextView;
 import com.will.RemovableView;
 import com.will.Stardust.bean.Book;
 import com.will.Stardust.common.SPHelper;
-import com.will.Stardust.common.Util;
 import com.will.Stardust.db.DBHelper;
 
 import java.io.File;
@@ -49,7 +48,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.BookViewHolder
     public void onBindViewHolder(BookViewHolder holder, int position) {
         Book book = data.get(position);
         String bookName = book.getBookName().substring(0,book.getBookName().lastIndexOf("."));
-        holder.title.setText(bookName   );
+        holder.title.setText(bookName);
         holder.preview.setText(getPreview(book));
         holder.progressBar.setMax(100);
         int progress = getProgress(book);
@@ -88,7 +87,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.BookViewHolder
                     if(mCallback != null && !allowMove){//如果为删除模式则屏蔽点击事件
                         Book book = data.get(getAdapterPosition());
                         mCallback.onClick(book);
-                        DBHelper.getInstance().updateBookAccessTime(book.setAccessTime(System.currentTimeMillis()));
+                        DBHelper.getInstance().updateBook(book.setAccessTime(System.currentTimeMillis()));
                         reloadData();
                     }
                 }
@@ -123,17 +122,19 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.BookViewHolder
     //效率有点低，但一时间想不到更高效的对比方法
     public void addData(List<Book> list){
         List<Book> temp = new ArrayList<>();
-       for(int i=0;i<list.size();i++){
-           if(!data.contains(list.get(i))){
-               temp.add(list.get(i));
-           }
-       }
+        for (Book book :list){
+            if(!data.contains(book)){
+                temp.add(book);
+            }
+        }
         data.addAll(temp);
-        notifyDataSetChanged();
         DBHelper.getInstance().saveBook(temp);
+        notifyDataSetChanged();
     }
-    //获取并写入编码
 
+    public List<Book> getData(){
+        return data;
+    }
     private void removeItem(int position){
         Book book = data.remove(position);
         DBHelper.getInstance().deleteBookWithChapters(book);
@@ -186,6 +187,10 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.BookViewHolder
         void onLongClick();
     }
     private String getPreview(Book book){
+        String encoding = book.getEncoding();
+        if(encoding == null){
+            return "尚未阅读.";
+        }
         String name = book.getBookName();
         int position = SPHelper.getInstance().getBookmarkStart(name);
         byte[] bytes = new byte[1024];
@@ -195,7 +200,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.BookViewHolder
             RandomAccessFile randomAccessFile = new RandomAccessFile(file,"r");
             randomAccessFile.skipBytes(position);
             randomAccessFile.read(bytes);
-            preview = new String(bytes, Util.getEncoding(book));
+            preview = new String(bytes, encoding);
             randomAccessFile.close();
         }catch (FileNotFoundException f){
             f.printStackTrace();

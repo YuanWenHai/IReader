@@ -7,7 +7,7 @@ import java.io.Serializable;
  */
 
 public class Book implements Serializable{
-    private String name,path;
+    private String name,path,encoding;
     private long accessTime = 0;
     public Book(){}
     public Book(String name,String path){
@@ -40,7 +40,12 @@ public class Book implements Serializable{
         return accessTime;
     }
 
-
+    public void setEncoding(String encoding){
+        this.encoding = encoding;
+    }
+    public String getEncoding(){
+        return encoding;
+    }
 
     @Override
     public boolean equals(Object o) {

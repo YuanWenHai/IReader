@@ -42,6 +42,7 @@ public class DBHelper {
             book.setBookName(cursor.getString(cursor.getColumnIndex("book_name")));
             book.setPath(cursor.getString(cursor.getColumnIndex("book_path")));
             book.setAccessTime(cursor.getLong(cursor.getColumnIndex("access_time")));
+            book.setEncoding(cursor.getString(cursor.getColumnIndex("book_encoding")));
             list.add(book);
         }
         cursor.close();
@@ -83,6 +84,7 @@ public class DBHelper {
         cv.put("book_name",book.getBookName());
         cv.put("book_path",book.getPath());
         cv.put("access_time",book.getAccessTime());
+        cv.put("book_encoding",book.getEncoding());
         db.insert("book","book,name",cv);
     }
     public void saveBook(final List<Book> list){
@@ -111,9 +113,16 @@ public class DBHelper {
         db.delete("book",null,null);
         db.delete("chapter",null,null);
     }
-    public void updateBookAccessTime(Book book){
+
+    /**
+     * 更新数据库中的某条数据，但不能更新路径，因为路径是文件的标识
+     * @param book 要更新的条目
+     */
+    public void updateBook(Book book){
         ContentValues cv = new ContentValues();
         cv.put("access_time",book.getAccessTime());
+        cv.put("book_name",book.getBookName());
+        cv.put("book_encoding",book.getEncoding());
         db.update("book",cv,"book_path=?",new String[]{book.getPath()});
     }
 

@@ -29,5 +29,4 @@ dependencies {
     compile 'com.github.YuanWenHai:MovableView:1.8'
     compile 'com.crystal:crystalrangeseekbar:1.1.1'
     compile files('lib/juniversalchardet-1.0.3.jar')
-    compile files('lib/commons-io-2.5.jar')
 }

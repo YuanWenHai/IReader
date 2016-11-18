@@ -37,17 +37,17 @@ public class PageFactory {
     private int screenHeight, screenWidth;//实际屏幕尺寸
     private int pageHeight,pageWidth;//文字排版页面尺寸
     private int lineNumber;//行数
-    private int lineSpace = 3;//行距;
+    private int lineSpace = Util.getPXWithDP(5);
     private int fileLength;//映射到内存中Book的字节数
     private int fontSize ;
-    private static final int margin = 30;//文字显示距离屏幕实际尺寸的偏移量
+    private static final int margin = Util.getPXWithDP(5);//文字显示距离屏幕实际尺寸的偏移量
     private Paint mPaint;
     private int begin;//当前阅读的字节数_开始
     private int end;//当前阅读的字节数_结束
     private MappedByteBuffer mappedFile;//映射到内存中的文件
     private RandomAccessFile randomFile;//关闭Random流时使用
 
-    private String code;
+    private String encoding;
     private Context mContext;
 
     private SPHelper spHelper = SPHelper.getInstance();
@@ -64,7 +64,6 @@ public class PageFactory {
             synchronized (PageFactory.class){
                 if(instance == null){
                     instance = new PageFactory(view);
-                    instance.code = Util.getEncoding(book);
                     instance.openBook(book);
                 }
             }
@@ -98,8 +97,9 @@ public class PageFactory {
 
     }
 
-    private void openBook(Book book){
+    private void openBook(final Book book){
         this.book = book;
+        encoding = book.getEncoding();
         begin = spHelper.getBookmarkStart(book.getBookName());
         end = spHelper.getBookmarkEnd(book.getBookName());
         File file = new File(book.getPath());
@@ -107,68 +107,65 @@ public class PageFactory {
             try {
                 randomFile = new RandomAccessFile(file, "r");
                 mappedFile = randomFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, (long) fileLength);
-                Log.e("content",new String(getNextParagraph(0),code));
+                Log.e("content",new String(readParagraphForward(end),encoding));
+                for(byte temp : readParagraphForward(end)){
+                    Log.e("byte",(temp&0xff)+"");
+                }
             } catch (Exception e) {
                 e.printStackTrace();
-                Log.e("exception","!");
+                Util.makeToast("打开失败！");
             }
+        Log.e(book.getBookName(),encoding);
     }
     //向后读取一个段落，返回bytes
-    private byte[] readParagraphForward( int end){
 
-        byte b0;
-        int i = end;
-        while(i < fileLength){
-            b0 = mappedFile.get(i++);
-            if(b0 == 0x0a){
-                break;
-            }
-        }
-        int nParaSize = i - end;
-        byte[] buf = new byte[nParaSize];
-        for (i = 0; i < nParaSize; i++) {
-            buf[i] =  mappedFile.get(end + i);
-        }
-        return buf;
-
-    }
-    private int testEnd = 0;
-    private int lineBreak;
-    private byte[] getNextParagraph(int end){
+    private byte[] readParagraphForward(int end){
         byte b0;
         int before = 0;
         int i = end;
         while(i < fileLength){
             b0 = mappedFile.get(i);
-            if(b0 == 0x0a && before ==0){
-                Log.e("before is"+before,"current is"+b0);
-                break;
+            if(encoding.equals("UTF-16LE")) {
+                if (b0 == 0 && before == 10) {
+                    break;
+                }
+            }else{
+                if(b0 == 10){
+                    break;
+                }
             }
             before = b0;
             i++;
         }
+
         int nParaSize = i - end + 1;
         byte[] buf = new byte[nParaSize];
         for (i = 0; i < nParaSize; i++) {
             buf[i] =  mappedFile.get(end + i);
-        }
-        Log.e("buffer size",buf.length+"");
-        for(byte temp :buf){
-            Log.e("byte",temp+"");
         }
         return buf;
     }
     //向前读取一个段落
     private byte[] readParagraphBack(int begin){
         byte b0 ;
+        byte before = 1;
         int i = begin -1 ;
         while(i > 0){
             b0 = mappedFile.get(i);
-            if(b0 == 0x0a && i != begin -1 ){
-                i++;
-                break;
+            if(encoding.equals("UTF-16LE")){
+                if(b0 == 10 && before==0 && i != begin-2){
+                    i+=2;
+                    break;
+                }
+            }
+            else{
+                if(b0 == 0x0a && i != begin -1 ){
+                    i++;
+                    break;
+                }
             }
             i--;
+            before = b0;
         }
         int nParaSize = begin -i ;
         byte[] buf = new byte[nParaSize];
@@ -185,12 +182,12 @@ private void pageDown(){
         byte[] byteTemp = readParagraphForward(end);
         end += byteTemp.length;
         try{
-            strParagraph = new String(byteTemp,code);
+            strParagraph = new String(byteTemp, encoding);
         }catch(Exception e){
             e.printStackTrace();
         }
-        strParagraph = strParagraph.replaceAll("\r\n","  ");
-        strParagraph = strParagraph.replaceAll("\n", "  ");
+        //strParagraph = strParagraph.replaceAll("\r\n","  ");
+        //strParagraph = strParagraph.replaceAll("\n", "  ");
         while(strParagraph.length() >  0){
             int size = mPaint.breakText(strParagraph,true,pageWidth,null);
             content.add(strParagraph.substring(0,size));
@@ -201,7 +198,7 @@ private void pageDown(){
         }
             if(strParagraph.length()>0){
                 try{
-                end -= (strParagraph).getBytes(code).length;
+                end -= (strParagraph).getBytes(encoding).length;
             }catch(Exception e){
                     e.printStackTrace();
                 }
@@ -217,7 +214,7 @@ private void pageDown(){
             byte[] byteTemp = readParagraphBack(begin);
             begin -= byteTemp.length;
             try{
-                strParagraph = new String(byteTemp,code);
+                strParagraph = new String(byteTemp, encoding);
             }catch(UnsupportedEncodingException e){
                 e.printStackTrace();
             }
@@ -233,7 +230,7 @@ private void pageDown(){
             }
             if(strParagraph.length() > 0){
               try{
-                  begin+= strParagraph.getBytes(code).length;
+                  begin+= strParagraph.getBytes(encoding).length;
               }catch (UnsupportedEncodingException u){
                   u.printStackTrace();
               }
@@ -370,8 +367,8 @@ private void pageDown(){
     public Book getBook(){
         return book;
     }
-    public String getCode(){
-        return code;
+    public String getEncoding(){
+        return encoding;
     }
     public int getCurrentEnd(){
         return end;

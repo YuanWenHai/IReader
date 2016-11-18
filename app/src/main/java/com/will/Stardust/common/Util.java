@@ -1,6 +1,5 @@
 package com.will.Stardust.common;
 
-import android.util.Log;
 import android.widget.Toast;
 
 import com.will.Stardust.base.MyApplication;
@@ -29,30 +28,25 @@ public class Util {
     }
 
     public static String getEncoding(Book book){
-        String encoding = SPHelper.getInstance().getBookEncoding(book);
-        if(encoding.isEmpty()){
-
-            UniversalDetector detector = new UniversalDetector(null);
-            byte[] bytes = new byte[1024];
-            try{
-                BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(new File(book.getPath())));
-                int length;
-                while ((length = bufferedInputStream.read(bytes)) > 0){
-                    detector.handleData(bytes,0,length);
-                }
-                detector.dataEnd();
-                bufferedInputStream.close();
-            }catch (FileNotFoundException f){
-                f.printStackTrace();
-            }catch (IOException i){
-                i.printStackTrace();
+        UniversalDetector detector = new UniversalDetector(null);
+        byte[] bytes = new byte[1024];
+        try{
+            BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(new File(book.getPath())));
+            int length;
+            while ((length = bufferedInputStream.read(bytes)) > 0){
+                detector.handleData(bytes,0,length);
             }
-            encoding = detector.getDetectedCharset();
-            SPHelper.getInstance().setBookEncoding(book,encoding);
+            detector.dataEnd();
+            bufferedInputStream.close();
+        }catch (FileNotFoundException f){
+            f.printStackTrace();
+        }catch (IOException i){
+            i.printStackTrace();
         }
-        Log.e(book.getBookName(),encoding);
-        return encoding;
-
-
+        return detector.getDetectedCharset();
+    }
+    public static int getPXWithDP(int dp){
+        float density = MyApplication.getGlobalContext().getResources().getDisplayMetrics().density;
+        return (int)(dp*density);
     }
 }

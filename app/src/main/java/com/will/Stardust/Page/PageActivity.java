@@ -71,35 +71,6 @@ public class PageActivity extends BaseActivity implements Animation.AnimationLis
         mPageFactory = PageFactory.getInstance(pageView,book);
         mPageFactory.nextPage();
 
-
-        /*pageView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-
-                if(motionEvent.getAction() == MotionEvent.ACTION_DOWN){
-                    if(isAnimating){
-                        return true;
-                    }
-                    if(!isActionBarHidden){
-                        changeActionState();
-                        return true;
-                    }
-                    if(bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED){
-                        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                        originPosition = -1;
-                        return true;
-                    }
-                    if(motionEvent.getX() > pageView.getWidth()* 0.66f){
-                        mPageFactory.nextPage();
-                    }else if(motionEvent.getX() < pageView.getWidth()*0.33f){
-                        mPageFactory.prePage();
-                    }else{
-                      changeActionState();
-                    }
-                }
-                return true;
-            }
-        });*/
         pageView.setOnClickCallback(new PageView.OnClickCallback() {
             @Override
             public void onLeftClick() {

@@ -33,7 +33,7 @@ public class ChapterFactory {
     private Book book;
     private MappedByteBuffer mappedByteBuffer;
     private int mappedFileLength;
-    private String code;
+    private String encoding;
     private String keyword = KEYWORD_ZHANG;
     private ArrayList<Chapter> chapters = new ArrayList<>();
     private final ArrayList<Integer> positions = new ArrayList<>();
@@ -48,7 +48,7 @@ public class ChapterFactory {
         book = PageFactory.getInstance().getBook();
         mappedByteBuffer = PageFactory.getInstance().getMappedFile();
         mappedFileLength = PageFactory.getInstance().getFileLength();
-        code = PageFactory.getInstance().getCode();
+        encoding = PageFactory.getInstance().getEncoding();
     }
 
     public void getChapterFromFile(final LoadCallback callback) {
@@ -73,7 +73,7 @@ public class ChapterFactory {
         chapters.clear();
         int i = 0;
         try {
-            InputStreamReader isr = new InputStreamReader(new FileInputStream(new File(book.getPath())),code);
+            InputStreamReader isr = new InputStreamReader(new FileInputStream(new File(book.getPath())), encoding);
             BufferedReader reader = new BufferedReader(isr);
             String temp;
             Chapter chapter;
@@ -106,7 +106,7 @@ public class ChapterFactory {
                 Log.e("start","insert data");
                 for(int a=0;a<chapters.size();a++){
                     chapter = chapters.get(a);
-                    chapter.setChapterBytePosition(positions.get(chapter.getChapterParagraphPosition()-1));
+                    chapter.setChapterBytePosition(positions.get(Math.max(chapter.getChapterParagraphPosition()-1,0)));
                     //Log.e("chapter position",chapter.getChapterBytePosition()+"");
                 }
             }
@@ -137,22 +137,44 @@ public class ChapterFactory {
                    byte[] fileBytes = new byte[mappedFileLength];
                    mappedByteBuffer.get(fileBytes);
                    mappedByteBuffer.position(0);
+                   byte lastByte = 1;
+                   boolean littleEndian = encoding.contains("LE");
                    for(int i=0;i<mappedFileLength;i++){
-                       if(fileBytes[i] == 0x0a){
-                           positions.add(i);
-                           if( i % 1000 == 0 && progressCallback !=null){
-                               if(!hasChapters){
-                                   return;
-                               }
-                               final int percent = i*100/mappedFileLength;
-                               mHandler.post(new Runnable() {
-                                   @Override
-                                   public void run() {
-                                       progressCallback.currentPercentage(percent);
+                       if(littleEndian){
+                           if (fileBytes[i] == 0 && lastByte == 10){
+                               positions.add(i-1);
+                               if( i % 999 == 0 && progressCallback !=null){
+                                   if(!hasChapters){
+                                       return;
                                    }
-                               });
+                                   final int percent = i*100/mappedFileLength;
+                                   mHandler.post(new Runnable() {
+                                       @Override
+                                       public void run() {
+                                           progressCallback.currentPercentage(percent);
+                                       }
+                                   });
+                               }
+                           }
+                       }else{
+                           if(fileBytes[i] == 0x0a){
+                               positions.add(i+1);
+                               if( i % 1000 == 0 && progressCallback !=null){
+                                   if(!hasChapters){
+                                       return;
+                                   }
+                                   final int percent = i*100/mappedFileLength;
+                                   mHandler.post(new Runnable() {
+                                       @Override
+                                       public void run() {
+                                           progressCallback.currentPercentage(percent);
+                                       }
+                                   });
+                               }
                            }
                        }
+
+                       lastByte = fileBytes[i];
                    }
                    Log.e("positions","load completely");
                }

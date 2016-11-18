@@ -17,6 +17,7 @@ public class DBOpenHelper extends SQLiteOpenHelper {
             "id integer primary key autoincrement," +
             "book_name text," +
             "book_path text," +
+            "book_encoding text,"+
             "access_time long)";
     public static final String CREATE_CHAPTER = "create table chapter (" +
             "id integer primary key autoincrement," +

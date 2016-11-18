@@ -47,6 +47,10 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onClick(Book book) {
                 Intent intent = new Intent(MainActivity.this,PageActivity.class);
+                if(book.getEncoding() == null){
+                    book.setEncoding(Util.getEncoding(book));
+                    DBHelper.getInstance().updateBook(book);
+                }
                 intent.putExtra("book",book);
                 startActivityForResult(intent,RESTART_REQUEST);
             }
@@ -113,6 +117,23 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+    private void getBookEncodingAndWriteToDB(final List<Book> list){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for(Book book :list){
+                    book.setEncoding(Util.getEncoding(book));
+                }
+                DBHelper.getInstance().saveBook(list);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mAdapter.notifyDataSetChanged();
+                    }
+                });
+            }
+        }).start();
+    }
     @Override
     public void onBackPressed() {
         if(mAdapter.isAllowMove()){
