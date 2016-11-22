@@ -1,4 +1,4 @@
-package com.will.Stardust.Page;
+package com.will.ireader.page;
 
 import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
@@ -21,12 +21,12 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.will.Stardust.R;
-import com.will.Stardust.View.PageView;
-import com.will.Stardust.base.BaseActivity;
-import com.will.Stardust.bean.Book;
-import com.will.Stardust.chapter.ChapterActivity;
-import com.will.Stardust.common.SPHelper;
+import com.will.ireader.R;
+import com.will.ireader.view.PageView;
+import com.will.ireader.base.BaseActivity;
+import com.will.ireader.bean.Book;
+import com.will.ireader.chapter.ChapterActivity;
+import com.will.ireader.common.SPHelper;
 
 /**
  * Created by will on 2016/11/3.

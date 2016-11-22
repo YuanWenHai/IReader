@@ -1,4 +1,4 @@
-package com.will.Stardust.chapter;
+package com.will.ireader.chapter;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -10,12 +10,12 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView;
-import com.will.Stardust.Page.PageFactory;
-import com.will.Stardust.R;
-import com.will.Stardust.base.BaseActivity;
-import com.will.Stardust.bean.Chapter;
-import com.will.Stardust.common.SPHelper;
-import com.will.Stardust.common.Util;
+import com.will.ireader.page.PageFactory;
+import com.will.ireader.R;
+import com.will.ireader.base.BaseActivity;
+import com.will.ireader.bean.Chapter;
+import com.will.ireader.common.SPHelper;
+import com.will.ireader.common.Util;
 
 import java.util.List;
 

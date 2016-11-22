@@ -1,4 +1,4 @@
-package com.will.Stardust;
+package com.will.ireader;
 
 import android.app.Activity;
 import android.content.DialogInterface;
@@ -13,12 +13,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.will.Stardust.Page.PageActivity;
-import com.will.Stardust.base.BaseActivity;
-import com.will.Stardust.bean.Book;
-import com.will.Stardust.common.SPHelper;
-import com.will.Stardust.common.Util;
-import com.will.Stardust.db.DBHelper;
+import com.will.ireader.page.PageActivity;
+import com.will.ireader.base.BaseActivity;
+import com.will.ireader.bean.Book;
+import com.will.ireader.common.SPHelper;
+import com.will.ireader.common.Util;
+import com.will.ireader.db.DBHelper;
 import com.will.filesearcher.file_searcher.FileSearcherActivity;
 
 import java.io.File;

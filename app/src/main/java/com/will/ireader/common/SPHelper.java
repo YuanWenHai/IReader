@@ -1,10 +1,10 @@
-package com.will.Stardust.common;
+package com.will.ireader.common;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.will.Stardust.base.MyApplication;
-import com.will.Stardust.bean.Book;
+import com.will.ireader.base.MyApplication;
+import com.will.ireader.bean.Book;
 
 /**
  * Created by will on 2016/11/3.

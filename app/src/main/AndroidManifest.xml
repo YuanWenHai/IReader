@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.will.Stardust">
+    package="com.will.ireader">
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGER"/>
 
     <application
-        android:name=".base.MyApplication"
+        android:name="com.will.ireader.base.MyApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic"
         android:label="@string/app_name"
@@ -13,14 +13,14 @@
         android:theme="@style/AppDayTheme"
         android:largeHeap="true">
         <activity
-            android:name="com.will.Stardust.MainActivity">
+            android:name="com.will.ireader.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".Page.PageActivity"/>
-        <activity android:name=".chapter.ChapterActivity"/>
+        <activity android:name="com.will.ireader.page.PageActivity"/>
+        <activity android:name="com.will.ireader.chapter.ChapterActivity"/>
     </application>
 
 </manifest>

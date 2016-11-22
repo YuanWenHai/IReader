@@ -1,11 +1,11 @@
-package com.will.Stardust.db;
+package com.will.ireader.db;
 
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.will.Stardust.bean.Book;
-import com.will.Stardust.bean.Chapter;
+import com.will.ireader.bean.Book;
+import com.will.ireader.bean.Chapter;
 
 import java.util.ArrayList;
 import java.util.List;

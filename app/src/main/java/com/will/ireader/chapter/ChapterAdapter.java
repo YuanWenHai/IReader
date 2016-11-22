@@ -1,4 +1,4 @@
-package com.will.Stardust.chapter;
+package com.will.ireader.chapter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -7,8 +7,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.will.Stardust.R;
-import com.will.Stardust.bean.Chapter;
+import com.will.ireader.R;
+import com.will.ireader.bean.Chapter;
 
 import java.util.ArrayList;
 import java.util.List;

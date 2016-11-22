@@ -1,14 +1,14 @@
-package com.will.Stardust.chapter;
+package com.will.ireader.chapter;
 
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
-import com.will.Stardust.Page.PageFactory;
-import com.will.Stardust.bean.Book;
-import com.will.Stardust.bean.Chapter;
-import com.will.Stardust.common.Util;
-import com.will.Stardust.db.DBHelper;
+import com.will.ireader.page.PageFactory;
+import com.will.ireader.bean.Book;
+import com.will.ireader.bean.Chapter;
+import com.will.ireader.common.Util;
+import com.will.ireader.db.DBHelper;
 
 import java.io.BufferedReader;
 import java.io.File;

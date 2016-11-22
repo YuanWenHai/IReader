@@ -1,4 +1,4 @@
-package com.will.Stardust.bean;
+package com.will.ireader.bean;
 
 import java.io.Serializable;
 

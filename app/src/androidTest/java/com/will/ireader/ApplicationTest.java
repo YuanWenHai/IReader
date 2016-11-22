@@ -1,4 +1,4 @@
-package com.will.Stardust;
+package com.will.ireader;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

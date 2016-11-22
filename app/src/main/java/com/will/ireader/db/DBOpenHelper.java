@@ -1,9 +1,9 @@
-package com.will.Stardust.db;
+package com.will.ireader.db;
 
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.will.Stardust.base.MyApplication;
+import com.will.ireader.base.MyApplication;
 
 /**
  * Created by Will on 2016/1/31.

@@ -1,4 +1,4 @@
-package com.will.Stardust.base;
+package com.will.ireader.base;
 
 import android.app.Application;
 import android.content.Context;

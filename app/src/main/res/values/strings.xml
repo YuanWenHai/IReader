@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">星尘阅读器</string>
+    <string name="app_name">简阅</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="add">添加</string>

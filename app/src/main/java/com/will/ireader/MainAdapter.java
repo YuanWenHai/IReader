@@ -1,4 +1,4 @@
-package com.will.Stardust;
+package com.will.ireader;
 
 import android.content.Context;
 import android.support.v7.widget.CardView;
@@ -12,9 +12,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.will.RemovableView;
-import com.will.Stardust.bean.Book;
-import com.will.Stardust.common.SPHelper;
-import com.will.Stardust.db.DBHelper;
+import com.will.ireader.bean.Book;
+import com.will.ireader.common.SPHelper;
+import com.will.ireader.db.DBHelper;
 
 import java.io.File;
 import java.io.FileNotFoundException;

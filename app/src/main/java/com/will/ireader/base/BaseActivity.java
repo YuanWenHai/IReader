@@ -1,4 +1,4 @@
-package com.will.Stardust.base;
+package com.will.ireader.base;
 
 import android.support.v7.app.AppCompatActivity;
 

@@ -1,4 +1,4 @@
-package com.will.Stardust;
+package com.will.ireader;
 
 import org.junit.Test;
 

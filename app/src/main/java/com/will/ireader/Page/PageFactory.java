@@ -1,4 +1,4 @@
-package com.will.Stardust.Page;
+package com.will.ireader.page;
 
 import android.app.Activity;
 import android.content.Context;
@@ -11,11 +11,11 @@ import android.os.BatteryManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
-import com.will.Stardust.R;
-import com.will.Stardust.View.PageView;
-import com.will.Stardust.bean.Book;
-import com.will.Stardust.common.SPHelper;
-import com.will.Stardust.common.Util;
+import com.will.ireader.R;
+import com.will.ireader.view.PageView;
+import com.will.ireader.bean.Book;
+import com.will.ireader.common.SPHelper;
+import com.will.ireader.common.Util;
 
 import java.io.File;
 import java.io.IOException;
