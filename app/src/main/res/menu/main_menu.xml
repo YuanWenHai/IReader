@@ -14,4 +14,8 @@
         android:title="@string/delete_all"
         android:id="@+id/main_menu_delete_all"
         app:showAsAction="never"/>
+    <item
+        android:title="@string/feedback"
+        android:id="@+id/main_menu_feedback"
+        app:showAsAction="never"/>
 </menu>

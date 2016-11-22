@@ -3,6 +3,7 @@ package com.will.Stardust;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
@@ -90,6 +91,13 @@ public class MainActivity extends BaseActivity {
                 break;
             case R.id.main_menu_delete_all:
                 showDeleteAllDialog();
+                 break;
+            case R.id.main_menu_feedback:
+                Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
+                emailIntent.setData(Uri.parse("mailto:a2265839@gmail.com"));
+                emailIntent.putExtra(Intent.EXTRA_SUBJECT,"阅读器建议/问题反馈");
+                startActivity(emailIntent);
+                break;
         }
 
         return true;
@@ -117,23 +125,6 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    private void getBookEncodingAndWriteToDB(final List<Book> list){
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                for(Book book :list){
-                    book.setEncoding(Util.getEncoding(book));
-                }
-                DBHelper.getInstance().saveBook(list);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mAdapter.notifyDataSetChanged();
-                    }
-                });
-            }
-        }).start();
-    }
     @Override
     public void onBackPressed() {
         if(mAdapter.isAllowMove()){

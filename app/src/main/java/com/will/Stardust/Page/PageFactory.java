@@ -108,9 +108,6 @@ public class PageFactory {
                 randomFile = new RandomAccessFile(file, "r");
                 mappedFile = randomFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, (long) fileLength);
                 Log.e("content",new String(readParagraphForward(end),encoding));
-                for(byte temp : readParagraphForward(end)){
-                    Log.e("byte",(temp&0xff)+"");
-                }
             } catch (Exception e) {
                 e.printStackTrace();
                 Util.makeToast("打开失败！");
@@ -138,7 +135,9 @@ public class PageFactory {
             i++;
         }
 
-        int nParaSize = i - end + 1;
+
+        int nParaSize = i - end + (i < fileLength ? 1:0) ;
+
         byte[] buf = new byte[nParaSize];
         for (i = 0; i < nParaSize; i++) {
             buf[i] =  mappedFile.get(end + i);
@@ -186,8 +185,8 @@ private void pageDown(){
         }catch(Exception e){
             e.printStackTrace();
         }
-        //strParagraph = strParagraph.replaceAll("\r\n","  ");
-        //strParagraph = strParagraph.replaceAll("\n", "  ");
+        strParagraph = strParagraph.replaceAll("\r\n","  ");
+        strParagraph = strParagraph.replaceAll("\n", " ");
         while(strParagraph.length() >  0){
             int size = mPaint.breakText(strParagraph,true,pageWidth,null);
             content.add(strParagraph.substring(0,size));

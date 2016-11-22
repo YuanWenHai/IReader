@@ -25,9 +25,9 @@ import java.util.List;
  */
 
 public class ChapterFactory {
-    public static final String KEYWORD_ZHANG = "章 ";
-    public static final String KEYWORD_JIE = "节 ";
-    public static final String KEYWORD_HUI = "回 ";
+    public static final String KEYWORD_ZHANG = "章";
+    public static final String KEYWORD_JIE = "节";
+    public static final String KEYWORD_HUI = "回";
 
 
     private Book book;
@@ -43,7 +43,6 @@ public class ChapterFactory {
     private Handler mHandler = new Handler(Looper.getMainLooper());
 
     private volatile boolean hasChapters = true;
-    private boolean checkHasChapter = true;
     public ChapterFactory() {
         book = PageFactory.getInstance().getBook();
         mappedByteBuffer = PageFactory.getInstance().getMappedFile();
