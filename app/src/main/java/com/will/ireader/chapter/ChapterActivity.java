@@ -142,7 +142,7 @@ public class ChapterActivity extends BaseActivity implements ChapterFactory.Load
         return true;
     }
     private int getChapterNumber(int position,List<Chapter> list){
-        position -= 3;//因为在获取章节位置时往前了一字节，加上position指向的是下一未读字节，故这里回退三字节
+        position -= 2;//因为在获取章节byte位置时往前了一字节，同时position指向的是下一未读字节，故这里回退两个字节
         int begin = 0;
         int end = list.size()-1;
         while (begin <= end){

@@ -12,10 +12,10 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 
 import com.will.ireader.R;
-import com.will.ireader.view.PageView;
 import com.will.ireader.bean.Book;
 import com.will.ireader.common.SPHelper;
 import com.will.ireader.common.Util;
+import com.will.ireader.view.PageView;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,6 +23,7 @@ import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -107,7 +108,6 @@ public class PageFactory {
             try {
                 randomFile = new RandomAccessFile(file, "r");
                 mappedFile = randomFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, (long) fileLength);
-                Log.e("content",new String(readParagraphForward(end),encoding));
             } catch (Exception e) {
                 e.printStackTrace();
                 Util.makeToast("打开失败！");
@@ -135,8 +135,8 @@ public class PageFactory {
             i++;
         }
 
-
-        int nParaSize = i - end + (i < fileLength ? 1:0) ;
+        i = Math.min(fileLength-1,i);
+        int nParaSize = i - end + 1 ;
 
         byte[] buf = new byte[nParaSize];
         for (i = 0; i < nParaSize; i++) {
@@ -273,6 +273,29 @@ private void pageDown(){
         }
     }
 
+    private int searchPositionByKey(int beginPos,String key){
+        int position = begin;
+        try{
+            randomFile.seek(beginPos);
+            String keyString = new String( key.getBytes(encoding), StandardCharsets.ISO_8859_1);
+            String temp;
+            long pointer;
+            for(;;){
+                pointer = randomFile.getFilePointer();
+                temp = randomFile.readLine();
+                if(temp != null && temp.contains(keyString)){
+                    position = (int)pointer;
+                    break;
+                }
+            }
+        }catch (UnsupportedEncodingException u){
+            u.printStackTrace();
+        }catch (IOException i){
+            i.printStackTrace();
+        }
+        return position;
+    }
+
     private String getBatteryLevel(){
         Intent batteryIntent = mContext.registerReceiver(null,new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         int scaledLevel = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL,-1);
@@ -333,8 +356,7 @@ private void pageDown(){
     }
 
     public void setPosition(int position){
-        //begin = position;
-        //prePage();
+
         end = position;
         nextPage();
     }
