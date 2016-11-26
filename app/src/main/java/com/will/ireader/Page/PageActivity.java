@@ -39,6 +39,7 @@ public class PageActivity extends BaseActivity implements Animation.AnimationLis
     private View actionBar;
     private Toolbar toolbar;
     private View statusBar;
+    private TextView progressText;
     private BottomSheetBehavior<CardView> bottomSheetBehavior;
     private boolean isAnimating;
     private boolean isActionBarHidden = true;
@@ -316,7 +317,7 @@ public class PageActivity extends BaseActivity implements Animation.AnimationLis
         });
         //change progress
         progressBar = (SeekBar) findViewById(R.id.reading_activity_seek_bar);
-        final TextView progressText = (TextView) findViewById(R.id.reading_activity_progress_text);
+        progressText = (TextView) findViewById(R.id.reading_activity_progress_text);
         final ImageView resetProgress = (ImageView) findViewById(R.id.reading_activity_progress_reset);
         progressBar.setProgress(mPageFactory.getProgress());
         progressText.setText("当前进度："+mPageFactory.getProgress()+"%");
@@ -379,6 +380,10 @@ public class PageActivity extends BaseActivity implements Animation.AnimationLis
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
        if(REQUEST_CODE == requestCode && resultCode == RESULT_OK && data!=null){
            PageFactory.getInstance().setPosition(data.getIntExtra("position",1));
+           //跳转章节后进度也会变化，在此处更新进度值
+           int progress = PageFactory.getInstance().getProgress();
+           progressText.setText("当前进度："+progress+"%");
+           progressBar.setProgress(progress);
        }
     }
 }

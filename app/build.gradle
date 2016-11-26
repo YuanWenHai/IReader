@@ -8,8 +8,8 @@ android {
         applicationId "com.will.ireader"
         minSdkVersion 19
         targetSdkVersion 22
-        versionCode 3
-        versionName "2.0.1"
+        versionCode 4
+        versionName "2.0.2"
     }
     buildTypes {
         release {
