@@ -1,0 +1,13 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.will.filesearcher">
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <application android:allowBackup="true"
+        android:supportsRtl="true">
+        <activity android:name=".delegate.FileSearcherDelegateActivity"
+            android:theme="@style/FileSearcherTransParentTheme"/>
+        <activity android:name=".FileSearcherActivity"
+            android:theme="@style/FileSearcherActivityTheme"
+            android:screenOrientation="portrait"/>
+    </application>
+
+</manifest>

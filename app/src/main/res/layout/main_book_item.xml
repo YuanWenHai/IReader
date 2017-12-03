@@ -1,78 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.will.RemovableView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
-
-    <android.support.v7.widget.CardView
-        android:id="@+id/main_book_item_card_view"
+    android:layout_height="100dp">
+    <ImageView
+        android:id="@+id/main_book_item_cover"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:adjustViewBounds="true"
+        android:src="@drawable/book_flat"
+        android:layout_above="@id/main_book_item_progress_bar_layout"/>
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="@dimen/book_item_height"
-        app:cardUseCompatPadding="true">
-        <RelativeLayout
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_toEndOf="@id/main_book_item_cover">
+        <TextView
+            android:id="@+id/main_book_item_title"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-            <ImageView
-                android:id="@+id/main_book_item_cover"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:adjustViewBounds="true"
-                android:src="@drawable/book_blue"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp"/>
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_toEndOf="@id/main_book_item_cover">
-                <TextView
-                    android:id="@+id/main_book_item_title"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:layout_marginTop="15dp"
-                    tools:text="九州缥缈录"
-                    android:maxLines="1"
-                    android:textColor="@color/black"
-                    android:textSize="18sp"/>
-                <TextView
-                    android:id="@+id/main_book_item_preview"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    tools:text="@string/test_chapter_content"
-                    android:maxLines="4"
-                    android:textStyle="italic"
-                    android:ellipsize="end"
-                    android:padding="5dp"/>
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_marginTop="10dp">
-                    <ProgressBar
-                        android:id="@+id/main_book_item_progress_bar"
-                        style="?android:attr/progressBarStyleHorizontal"
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:padding="5dp"
-                        android:background="@null"
-                        android:theme="@style/FABTheme"/>
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_marginTop="15dp"
+            tools:text="九州缥缈录"
+            android:maxLines="1"
+            android:textColor="@color/black"
+            android:textSize="18sp"/>
+        <TextView
+            android:id="@+id/main_book_item_preview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:text="@string/test_chapter_content"
+            android:maxLines="4"
+            android:textStyle="italic"
+            android:ellipsize="end"
+            android:padding="5dp"/>
 
-                    <TextView
-                        android:id="@+id/main_book_item_progress_text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:padding="5dp"
-                        android:gravity="center"
-                        android:layout_gravity="center"
-                        tools:text="56%"/>
-                </LinearLayout>
-            </LinearLayout>
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/main_book_item_progress_bar_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignEnd="@id/main_book_item_cover">
 
+        <ProgressBar
+            android:id="@+id/main_book_item_progress_bar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@null"
+            android:theme="@style/FABTheme" />
 
-        </RelativeLayout>
-    </android.support.v7.widget.CardView>
+        <TextView
+            android:id="@+id/main_book_item_progress_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:gravity="center"
+            android:layout_gravity="center"
+            tools:text="56%"
+            tools:visibility="gone"/>
+    </LinearLayout>
 
-</com.will.RemovableView>
+</RelativeLayout>

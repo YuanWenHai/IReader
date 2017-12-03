@@ -13,13 +13,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.will.filesearcher.FileSearcher;
 import com.will.ireader.page.PageActivity;
 import com.will.ireader.base.BaseActivity;
 import com.will.ireader.bean.Book;
 import com.will.ireader.common.SPHelper;
 import com.will.ireader.common.Util;
 import com.will.ireader.db.DBHelper;
-import com.will.filesearcher.file_searcher.FileSearcherActivity;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -30,7 +30,6 @@ import java.util.List;
  */
 
 public class MainActivity extends BaseActivity {
-    private static final int GET_DATA_REQUEST = 888;
     private static final int RESTART_REQUEST = 123;
     private Toast mToast;
     private MainAdapter mAdapter;
@@ -75,12 +74,19 @@ public class MainActivity extends BaseActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
             case R.id.main_menu_search:
-                Intent intent = new Intent(this, FileSearcherActivity.class);
-                intent.putExtra("keyword",".txt");
-                intent.putExtra("min", 50 * 1024);
-                int theme = SPHelper.getInstance().isNightMode()? R.style.SearcherNightTheme : R.style.SearcherDayTheme;
-                intent.putExtra("theme",theme);
-                startActivityForResult(intent, GET_DATA_REQUEST);
+                new FileSearcher(this)
+                        .withExtension("txt")
+                        .withSizeLimit(10*1024,-1)
+                        .search(new FileSearcher.FileSearcherCallback() {
+                            @Override
+                            public void onSelect(List<File> files) {
+                                List<Book> dataList = new ArrayList<>();
+                                for(File file :files){
+                                    dataList.add(new Book(file.getName(),file.getPath()));
+                                }
+                                mAdapter.addData(dataList);
+                            }
+                        });
                 break;
             case R.id.main_menu_management:
                 if(mAdapter.isAllowMove()){
@@ -111,14 +117,7 @@ public class MainActivity extends BaseActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(requestCode == GET_DATA_REQUEST && resultCode == FileSearcherActivity.OK && data != null){
-            ArrayList<File> fileList = (ArrayList<File>) data.getSerializableExtra("data");
-            List<Book> dataList = new ArrayList<>();
-            for(File file :fileList){
-                dataList.add(new Book(file.getName(),file.getPath()));
-            }
-            mAdapter.addData(dataList);
-        }
+
         if(requestCode == RESTART_REQUEST && resultCode == Activity.RESULT_OK){
             startActivity(new Intent(this,MainActivity.class));
             finish();

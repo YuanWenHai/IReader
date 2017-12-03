@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="fileSearcherPrimaryColor">#3F51B5</color>
+    <color name="fileSearcherPrimaryDarkColor">#303F9F</color>
+    <color name="fileSearcherAccentColor">#3f51b5</color>
+    <color name="fileSearcherTransparent">#00000000</color>
+    <color name="fileSearcherBlack">#333333</color>
+    <color name="fileSearcherWhite">#ffffff</color>
+    <color name="fileSearcherCheckedBackground">#E8EAF6</color>
+    <color name="fileSearcherGray">#808080</color>
+</resources>

@@ -59,7 +59,7 @@ public class PageActivity extends BaseActivity implements Animation.AnimationLis
         statusBar = findViewById(R.id.reading_activity_status_bar);
         toolbar = (Toolbar)findViewById(R.id.reading_activity_toolbar);
         toolbar.setTitle(book.getBookName());
-        toolbar.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
+        toolbar.setNavigationIcon(R.drawable.arrow_back_holo_dark_no_trim_no_padding);
         setSupportActionBar(toolbar);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override

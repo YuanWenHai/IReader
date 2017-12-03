@@ -1,0 +1,16 @@
+<resources>
+    <string name="search_finish">Search Result: </string>
+    <string name="file_searcher_searching">Searching in :</string>
+    <string name="file_searcher_confirm">Confirm</string>
+    <string name="file_searcher_cancel_search">Cancel?</string>
+    <string name="file_searcher_cancel">Cancel</string>
+    <string name="dialog_message">Quit Searching?</string>
+    <string name="select_all">Select All</string>
+    <string name="done">done</string>
+    <string name="file_searcher_no_result_found">No result found.</string>
+    <string name="file_name">Name:&#160;</string>
+    <string name="file_path">Path:&#160;</string>
+    <string name="file_size">Size:&#160;</string>
+    <string name="file_last_modified_time">Modified time:&#160;</string>
+    <string name="file_searcher_searching_completed">Searching completed.</string>
+</resources>

@@ -66,7 +66,7 @@ public class ChapterActivity extends BaseActivity implements ChapterFactory.Load
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.chapter_activity_toolbar);
         toolbar.setTitle(PageFactory.getInstance().getBook().getBookName());
-        toolbar.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
+        toolbar.setNavigationIcon(R.drawable.arrow_back_holo_dark_no_trim_no_padding);
         setSupportActionBar(toolbar);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="search_finish">检索结果: </string>
+    <string name="file_searcher_cancel_search">取消？</string>
+    <string name="file_searcher_confirm">确定</string>
+    <string name="dialog_message">放弃搜索？</string>
+    <string name="file_searcher_no_result_found">未发现符合条件的文件.</string>
+    <string name="file_last_modified_time">修改时间：</string>
+    <string name="file_name">文件名：</string>
+    <string name="file_path">文件路径：</string>
+    <string name="select_all">全选</string>
+    <string name="file_searcher_searching">"正在搜索目录: "</string>
+    <string name="file_searcher_cancel">取消</string>
+    <string name="file_searcher_searching_completed">搜索完成</string>
+</resources>
