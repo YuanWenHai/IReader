@@ -30,7 +30,7 @@ public class SPHelper {
         return instance;
     }
     public int getFontSize(){
-        return config.getInt("font_size",45);
+        return config.getInt("font_size",Util.getPXFromDP(12));
     }
     public void setFontSize(int size){
         configEditor.putInt("font_size",size).apply();
@@ -52,11 +52,11 @@ public class SPHelper {
     public int getBookmarkStart(String bookName){
         return bookmark.getInt(bookName+"start",0);
     }
-    public void setBookmarkEnd(String bookName,int position){
-        bookmarkEditor.putInt(bookName+"end",position).apply();
+    public void setBookmarkNextStart(String bookName, int position){
+        bookmarkEditor.putInt(bookName+"next_start",position).apply();
     }
-    public int getBookmarkEnd(String bookName){
-        return bookmark.getInt(bookName+"end",0);
+    public int getBookmarkNextStart(String bookName){
+        return bookmark.getInt(bookName+"next_start",0);
     }
 
     public void clearAllBookMarkData(){

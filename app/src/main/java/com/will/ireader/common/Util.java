@@ -1,5 +1,9 @@
 package com.will.ireader.common;
 
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.support.annotation.ColorRes;
 import android.widget.Toast;
 
 import com.will.ireader.base.MyApplication;
@@ -45,8 +49,21 @@ public class Util {
         }
         return detector.getDetectedCharset();
     }
-    public static int getPXWithDP(int dp){
+    public static int getPXFromDP(int dp){
         float density = MyApplication.getGlobalContext().getResources().getDisplayMetrics().density;
         return (int)(dp*density);
+    }
+    public static int getPXFromDP(Context context,int dp){
+        float density = context.getResources().getDisplayMetrics().density;
+        return (int)(dp*density);
+    }
+    public static int getColorFromRes(Context context, @ColorRes int res){
+        return context.getResources().getColor(res);
+    }
+    public static ProgressDialog createProgressDialog(Context context,String text){
+        ProgressDialog dialog = new ProgressDialog(context);
+        dialog.setTitle(text);
+        dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        return dialog;
     }
 }

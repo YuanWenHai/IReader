@@ -1,17 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<RelativeLayout
+<com.will.ireader.view.CustomLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main_book_item_root"
     android:layout_width="match_parent"
-    android:layout_height="100dp">
+    android:layout_height="100dp"
+    app:backgroundColor="@color/blueTranslucent"
+    >
     <ImageView
         android:id="@+id/main_book_item_cover"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:adjustViewBounds="true"
-        android:src="@drawable/book_flat"
-        android:layout_above="@id/main_book_item_progress_bar_layout"/>
+        android:padding="10dp"
+        android:src="@drawable/book_green"
+        android:visibility="gone"/>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -31,6 +36,7 @@
             android:id="@+id/main_book_item_preview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center"
             tools:text="@string/test_chapter_content"
             android:maxLines="4"
             android:textStyle="italic"
@@ -38,31 +44,4 @@
             android:padding="5dp"/>
 
     </LinearLayout>
-    <LinearLayout
-        android:id="@+id/main_book_item_progress_bar_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignEnd="@id/main_book_item_cover">
-
-        <ProgressBar
-            android:id="@+id/main_book_item_progress_bar"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@null"
-            android:theme="@style/FABTheme" />
-
-        <TextView
-            android:id="@+id/main_book_item_progress_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="5dp"
-            android:gravity="center"
-            android:layout_gravity="center"
-            tools:text="56%"
-            tools:visibility="gone"/>
-    </LinearLayout>
-
-</RelativeLayout>
+</com.will.ireader.view.CustomLayout>

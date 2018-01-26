@@ -18,7 +18,9 @@ public class DBOpenHelper extends SQLiteOpenHelper {
             "book_name text," +
             "book_path text," +
             "book_encoding text,"+
-            "access_time long)";
+            "access_time long," +
+            "start_position long," +
+            "end_position long)";
     public static final String CREATE_CHAPTER = "create table chapter (" +
             "id integer primary key autoincrement," +
             "book_name text," +

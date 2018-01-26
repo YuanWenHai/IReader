@@ -15,7 +15,7 @@ import com.will.ireader.R;
 import com.will.ireader.bean.Book;
 import com.will.ireader.common.SPHelper;
 import com.will.ireader.common.Util;
-import com.will.ireader.view.PageView;
+import com.will.ireader.view.pageview.PageView;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,10 +38,10 @@ public class PageFactory {
     private int screenHeight, screenWidth;//实际屏幕尺寸
     private int pageHeight,pageWidth;//文字排版页面尺寸
     private int lineNumber;//行数
-    private int lineSpace = Util.getPXWithDP(5);
+    private int lineSpace = Util.getPXFromDP(5);
     private int fileLength;//映射到内存中Book的字节数
     private int fontSize ;
-    private static final int margin = Util.getPXWithDP(5);//文字显示距离屏幕实际尺寸的偏移量
+    private static final int margin = Util.getPXFromDP(5);//文字显示距离屏幕实际尺寸的偏移量
     private Paint mPaint;
     private int begin;//当前阅读的字节数_开始
     private int end;//当前阅读的字节数_结束
@@ -93,7 +93,7 @@ public class PageFactory {
                 mContext.getResources().getColor(R.color.dayModeTextColor));
 
         Bitmap bitmap = Bitmap.createBitmap(screenWidth,screenHeight, Bitmap.Config.ARGB_8888);
-        mView.setBitmap(bitmap);
+        //mView.setBitmap(bitmap);
         mCanvas = new Canvas(bitmap);
 
     }
@@ -102,7 +102,7 @@ public class PageFactory {
         this.book = book;
         encoding = book.getEncoding();
         begin = spHelper.getBookmarkStart(book.getBookName());
-        end = spHelper.getBookmarkEnd(book.getBookName());
+        end = spHelper.getBookmarkNextStart(book.getBookName());
         File file = new File(book.getPath());
         fileLength = (int) file.length();
             try {
@@ -324,7 +324,7 @@ private void pageDown(){
         printPage();
     }
     public void saveBookmark(){
-        SPHelper.getInstance().setBookmarkEnd(book.getBookName(),begin);
+        SPHelper.getInstance().setBookmarkNextStart(book.getBookName(),begin);
         SPHelper.getInstance().setBookmarkStart(book.getBookName(),begin);
     }
     public void setFontSize(int size){

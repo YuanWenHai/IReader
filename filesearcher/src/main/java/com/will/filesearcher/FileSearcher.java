@@ -15,6 +15,7 @@ import java.util.List;
  * Created by Will on 2017/10/31.
  */
 
+// TODO: 2017/12/6  在delegateActivity申请权限时似乎会有短暂的黑屏，应注意解决
 public class FileSearcher  {
     private File path;
     static final String FILE_FILTER = "file_filter";

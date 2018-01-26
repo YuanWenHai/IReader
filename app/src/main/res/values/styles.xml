@@ -30,7 +30,7 @@
     <style name="ToolbarPopThemeLight" parent="ThemeOverlay.AppCompat.Light">
     </style>
     <style name="ToolbarTheme" parent="ThemeOverlay.AppCompat.Dark">
-        <item name="android:textColorSecondary">@color/pure_white</item>
+        <item name="android:textColorSecondary">@color/whitest</item>
     </style>
     <style name="FABTheme" parent="Widget.Design.FloatingActionButton">
         <item name="elevation">6dp</item>
@@ -41,7 +41,7 @@
     </style>
     <style name="MenuTextAppearance">
         <item name="android:textSize">18sp</item>
-        <item name="android:textColor">@color/pure_white</item>
+        <item name="android:textColor">@color/whitest</item>
         <item name="android:layout_marginStart">35dp</item>
         <item name="android:gravity">start|center_vertical</item>
     </style>

@@ -43,6 +43,8 @@ public class DBHelper {
             book.setPath(cursor.getString(cursor.getColumnIndex("book_path")));
             book.setAccessTime(cursor.getLong(cursor.getColumnIndex("access_time")));
             book.setEncoding(cursor.getString(cursor.getColumnIndex("book_encoding")));
+            book.setStartPosition(cursor.getLong(cursor.getColumnIndex("start_position")));
+            book.setEndPosition(cursor.getLong(cursor.getColumnIndex("end_position")));
             list.add(book);
         }
         cursor.close();
@@ -85,6 +87,8 @@ public class DBHelper {
         cv.put("book_path",book.getPath());
         cv.put("access_time",book.getAccessTime());
         cv.put("book_encoding",book.getEncoding());
+        cv.put("start_position",book.getStartPosition());
+        cv.put("end_position",book.getEndPosition());
         db.insert("book","book,name",cv);
     }
     public void saveBook(final List<Book> list){
@@ -123,6 +127,15 @@ public class DBHelper {
         cv.put("access_time",book.getAccessTime());
         cv.put("book_name",book.getBookName());
         cv.put("book_encoding",book.getEncoding());
+        cv.put("start_position",book.getStartPosition());
+        cv.put("end_position",book.getEndPosition());
+        db.update("book",cv,"book_path=?",new String[]{book.getPath()});
+    }
+
+    public void updateBookStartAndEndPosition(Book book,long start,long end){
+        ContentValues cv = new ContentValues();
+        cv.put("start_position",start);
+        cv.put("end_position",end);
         db.update("book",cv,"book_path=?",new String[]{book.getPath()});
     }
 

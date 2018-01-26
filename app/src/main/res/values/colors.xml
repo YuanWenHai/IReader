@@ -11,10 +11,11 @@
     <color name="nightColorPrimaryLight">#757575</color>
     <color name="black">#0f0b02</color>
     <color name="white">#fbf0d9</color>
-    <color name="pure_white">#FFFFFF</color>
+    <color name="whitest">#FFFFFF</color>
     <color name="dayModeBackgroundColor">#FCECDF</color>
     <color name="dayModeTextColor">#424242</color>
     <color name="nightModeBackgroundColor">#424242</color>
     <color name="nightModeTextColor">#E0E0E0</color>
-
+    <color name="materialRed">#E53935</color>
+    <color name="blueTranslucent">#801E88E5</color>
 </resources>

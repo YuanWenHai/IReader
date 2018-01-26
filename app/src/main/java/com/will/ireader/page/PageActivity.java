@@ -22,7 +22,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.will.ireader.R;
-import com.will.ireader.view.PageView;
+import com.will.ireader.view.pageview.PageView;
 import com.will.ireader.base.BaseActivity;
 import com.will.ireader.bean.Book;
 import com.will.ireader.chapter.ChapterActivity;
@@ -34,7 +34,7 @@ import com.will.ireader.common.SPHelper;
 
 public class PageActivity extends BaseActivity implements Animation.AnimationListener{
     private static final int REQUEST_CODE = 666;
-    private PageFactory mPageFactory;
+    //private PageFactory mPageFactory;
     private PageView pageView;
     private View actionBar;
     private Toolbar toolbar;
@@ -52,13 +52,15 @@ public class PageActivity extends BaseActivity implements Animation.AnimationLis
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.reading_activity_layout);
-        Book book = (Book) getIntent().getSerializableExtra("book");
 
-        pageView = (PageView) findViewById(R.id.reading_activity_view);
+        PageInfo pageInfo = (PageInfo) getIntent().getSerializableExtra(PageInfo.PAGE_INFO);
+        pageView = findViewById(R.id.reading_activity_view);
+        pageView.setPageInfo(pageInfo);
+
         actionBar = findViewById(R.id.reading_activity_action_bar);
         statusBar = findViewById(R.id.reading_activity_status_bar);
-        toolbar = (Toolbar)findViewById(R.id.reading_activity_toolbar);
-        toolbar.setTitle(book.getBookName());
+        toolbar = findViewById(R.id.reading_activity_toolbar);
+        toolbar.setTitle(pageInfo.getBook().getBookName());
         toolbar.setNavigationIcon(R.drawable.arrow_back_holo_dark_no_trim_no_padding);
         setSupportActionBar(toolbar);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
@@ -69,53 +71,14 @@ public class PageActivity extends BaseActivity implements Animation.AnimationLis
         });
 
         pageView.setSystemUiVisibility(View.INVISIBLE);
-        mPageFactory = PageFactory.getInstance(pageView,book);
-        mPageFactory.nextPage();
 
-        pageView.setOnClickCallback(new PageView.OnClickCallback() {
-            @Override
-            public void onLeftClick() {
-               if(!hadOtherWidgetShown()){
-                   mPageFactory.prePage();
-               }
-            }
-
-            @Override
-            public void onMiddleClick() {
-               if(!hadOtherWidgetShown()){
-                   changeActionState();
-               }
-            }
-
-            @Override
-            public void onRightClick() {
-                if(!hadOtherWidgetShown()){
-                    mPageFactory.nextPage();
-                }
-            }
-        });
-        pageView.setOnScrollListener(new PageView.OnScrollListener() {
-            @Override
-            public void onLeftScroll() {
-                if(!hadOtherWidgetShown()){
-                    mPageFactory.nextPage();
-                }
-            }
-
-            @Override
-            public void onRightScroll() {
-                if(!hadOtherWidgetShown()){
-                    mPageFactory.prePage();
-                }
-            }
-        });
         iniBottomSheetMenu();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        mPageFactory.saveBookmark();
+
     }
 
     @Override
@@ -222,6 +185,7 @@ public class PageActivity extends BaseActivity implements Animation.AnimationLis
                 }
                 break;
             case R.id.page_menu_overflow:
+                pageView.saveCurrentPosition();
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
                 changeActionState();
                 break;
@@ -248,7 +212,7 @@ public class PageActivity extends BaseActivity implements Animation.AnimationLis
         if(which){
             //change toolbar
             toolbar.getMenu().getItem(0).setIcon(R.drawable.ic_brightness_6_white_24dp);
-            mPageFactory.setNightMode(true);
+            //mPageFactory.setNightMode(true);
             animateViewColorChanging(getResources().getColor(R.color.colorPrimary),
                     getResources().getColor(R.color.nightColorPrimary),300,toolbar);
             animateViewColorChanging(getResources().getColor(R.color.colorPrimaryDark),
@@ -263,7 +227,7 @@ public class PageActivity extends BaseActivity implements Animation.AnimationLis
             SPHelper.getInstance().setNightMode(true);
         }else{
             toolbar.getMenu().getItem(0).setIcon(R.drawable.ic_brightness_7_white_24dp);
-            mPageFactory.setNightMode(false);
+            //mPageFactory.setNightMode(false);
             animateViewColorChanging(getResources().getColor(R.color.nightColorPrimary),
                     getResources().getColor(R.color.colorPrimary),300,toolbar);
             animateViewColorChanging(getResources().getColor(R.color.nightColorPrimaryDark),
@@ -300,27 +264,27 @@ public class PageActivity extends BaseActivity implements Animation.AnimationLis
         increaseFont = (FloatingActionButton) findViewById(R.id.reading_activity_increase_font);
         decreaseFont = (FloatingActionButton) findViewById(R.id.reading_activity_decrease_font);
         final TextView fontText = (TextView) findViewById(R.id.reading_activity_font_text);
-        fontText.setText((FONT_STR + mPageFactory.getFontSize()));
+        fontText.setText((FONT_STR + pageView.getFontSize()));
         increaseFont.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mPageFactory.increaseFontSize();
-                fontText.setText((FONT_STR + mPageFactory.getFontSize()));
+                pageView.setFontSize(pageView.getFontSize()+1);
+                fontText.setText((FONT_STR + pageView.getFontSize()));
             }
         });
         decreaseFont.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mPageFactory.decreaseFontSize();
-                fontText.setText((FONT_STR + mPageFactory.getFontSize()));
+                pageView.setFontSize(pageView.getFontSize()-1);
+                fontText.setText((FONT_STR + pageView.getFontSize()));
             }
         });
         //change progress
         progressBar = (SeekBar) findViewById(R.id.reading_activity_seek_bar);
         progressText = (TextView) findViewById(R.id.reading_activity_progress_text);
         final ImageView resetProgress = (ImageView) findViewById(R.id.reading_activity_progress_reset);
-        progressBar.setProgress(mPageFactory.getProgress());
-        progressText.setText("当前进度："+mPageFactory.getProgress()+"%");
+        progressBar.setProgress(pageView.getProgress());
+        progressText.setText("当前进度："+pageView.getProgress()+"%");
         progressBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
@@ -333,7 +297,8 @@ public class PageActivity extends BaseActivity implements Animation.AnimationLis
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                int i = mPageFactory.setProgress(seekBar.getProgress());
+                pageView.setProgress(seekBar.getProgress());
+                int i = pageView.getProgress();
                 if(originPosition < 0){
                     originPosition = i;
                 }
@@ -342,11 +307,9 @@ public class PageActivity extends BaseActivity implements Animation.AnimationLis
         resetProgress.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-               if(originPosition >= 0){
-                   mPageFactory.setPosition(originPosition);
-                   progressText.setText("当前进度："+mPageFactory.getProgress()+"%");
-                   progressBar.setProgress(mPageFactory.getProgress());
-               }
+                pageView.restorePosition();
+                progressText.setText("当前进度："+pageView.getProgress()+"%");
+                progressBar.setProgress(pageView.getProgress());
             }
         });
         changeSeekbarColor(progressBar,getResources().getColor(isNightMode? R.color.nightColorPrimaryLight : R.color.colorPrimaryLight));
@@ -376,6 +339,7 @@ public class PageActivity extends BaseActivity implements Animation.AnimationLis
         layerDrawable.setDrawableByLayerId(android.R.id.background, background);
 
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
        if(REQUEST_CODE == requestCode && resultCode == RESULT_OK && data!=null){

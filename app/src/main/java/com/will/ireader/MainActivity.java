@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -14,15 +15,15 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.will.filesearcher.FileSearcher;
-import com.will.ireader.page.PageActivity;
 import com.will.ireader.base.BaseActivity;
 import com.will.ireader.bean.Book;
 import com.will.ireader.common.SPHelper;
 import com.will.ireader.common.Util;
 import com.will.ireader.db.DBHelper;
+import com.will.ireader.page.PageActivity;
+import com.will.ireader.page.PageInfo;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,31 +33,55 @@ import java.util.List;
 public class MainActivity extends BaseActivity {
     private static final int RESTART_REQUEST = 123;
     private Toast mToast;
-    private MainAdapter mAdapter;
-
+    private BookListAdapter mAdapter;
     private Toolbar toolbar;
     @Override
     protected void onCreate(Bundle savedInstanceState){
         setTheme(SPHelper.getInstance().isNightMode() ? R.style.AppNightTheme : R.style.AppDayTheme);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.main_recycler_view);
+        initializeView();
+    }
+
+
+    private void initializeView(){
+        RecyclerView recyclerView = findViewById(R.id.main_recycler_view);
+        DividerItemDecoration divider = new DividerItemDecoration(this,DividerItemDecoration.VERTICAL);
+        recyclerView.addItemDecoration(divider);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        mAdapter = new MainAdapter(this);
-        mAdapter.setOnClickCallback(new MainAdapter.ClickCallback() {
+
+        mAdapter = new BookListAdapter(this);
+        mAdapter.setOnClickCallback(new BookListAdapter.ClickCallback() {
             @Override
-            public void onClick(Book book) {
-                Intent intent = new Intent(MainActivity.this,PageActivity.class);
-                if(book.getEncoding() == null){
-                    book.setEncoding(Util.getEncoding(book));
-                    DBHelper.getInstance().updateBook(book);
-                }
-                intent.putExtra("book",book);
-                startActivityForResult(intent,RESTART_REQUEST);
+            public void onClick(final Book book) {
+                final PageInfo info = new PageInfo(book);
+                info.prepare(new PageInfo.ReadCallback() {
+                    @Override
+                    public void onStart() {
+                        Util.createProgressDialog(MainActivity.this,"读取中...");
+                    }
+
+                    @Override
+                    public void onSuccess() {
+                        Intent intent = new Intent(MainActivity.this,PageActivity.class);
+                       /* if(book.getEncoding() == null){
+                            book.setEncoding(Util.getEncoding(book));
+                            DBHelper.getInstance().updateBook(book);
+                        }*/
+                        intent.putExtra(PageInfo.PAGE_INFO,info);
+                        startActivityForResult(intent,RESTART_REQUEST);
+                    }
+
+                    @Override
+                    public void onBookInvalid() {
+
+                    }
+                });
+
             }
             @Override
             public void onLongClick() {
-                turnIntoMoveMode(true);
+                //turnIntoMoveMode(true);
             }
         });
         recyclerView.setAdapter(mAdapter);
@@ -79,21 +104,13 @@ public class MainActivity extends BaseActivity {
                         .withSizeLimit(10*1024,-1)
                         .search(new FileSearcher.FileSearcherCallback() {
                             @Override
-                            public void onSelect(List<File> files) {
-                                List<Book> dataList = new ArrayList<>();
-                                for(File file :files){
-                                    dataList.add(new Book(file.getName(),file.getPath()));
-                                }
-                                mAdapter.addData(dataList);
+                            public void onSelect(final List<File> files) {
+                                mAdapter.addBookFromFile(MainActivity.this,files);
                             }
                         });
                 break;
             case R.id.main_menu_management:
-                if(mAdapter.isAllowMove()){
-                  turnIntoMoveMode(false);
-                }else{
-                   turnIntoMoveMode(true);
-                }
+                mAdapter.showDeleteButton(!mAdapter.isDeleteButtonVisible());
                 break;
             case R.id.main_menu_delete_all:
                 showDeleteAllDialog();
@@ -126,29 +143,12 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void onBackPressed() {
-        if(mAdapter.isAllowMove()){
-           turnIntoMoveMode(false);
-        }else{
-            showExitToast();
-        }
-
-    }
-    private void turnIntoMoveMode(boolean which){
-       if(which){
-           mAdapter.allowMove(true);
-           toolbar.setTitle(getResources().getString(R.string.remove_to_delete));
-           //Util.makeToast("进入管理，左右滑动书籍删除");
-       }else{
-           mAdapter.allowMove(false);
-           toolbar.setTitle(getResources().getString(R.string.app_name));
-           Util.makeToast("已退出管理模式");
-       }
-    }
-    private void showExitToast(){
         if(mToast == null){
             mToast = Toast.makeText(this,"",Toast.LENGTH_SHORT);
         }
-        if (mToast.getView().getParent() == null){
+        if (mAdapter.isDeleteButtonVisible()){
+            mAdapter.showDeleteButton(false);
+        }else if(mToast.getView().getParent() == null){
             mToast.setText("再次点击返回退出应用");
             mToast.show();
         }else{
