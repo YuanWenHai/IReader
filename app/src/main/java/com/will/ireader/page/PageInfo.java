@@ -4,10 +4,13 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import com.will.ireader.R;
+import com.will.ireader.base.MyApplication;
 import com.will.ireader.bean.Book;
 import com.will.ireader.common.SPHelper;
 import com.will.ireader.common.TaskManager;
 import com.will.ireader.common.Util;
+import com.will.ireader.view.pageview.PageTheme;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -34,8 +37,11 @@ public class PageInfo implements Serializable{
 
 
     private int fontSize;
+
     private int startPosition;
     private int nextStartPosition;
+
+
     private Book book;
 
     private  int bottomBarSize;
@@ -45,6 +51,9 @@ public class PageInfo implements Serializable{
 
     private int fontMaxSize;
     private int fontMinSize;
+
+    private int fontColor;
+    private int backgroundColor;
 
     public PageInfo(Book book) {
         this.book  = book;
@@ -132,6 +141,12 @@ public class PageInfo implements Serializable{
         bottomBarFontSize = Util.getPXFromDP(10);
         bottomBarStartOffset = getRowStartOffset();
         bottomBarEndOffset = getRowEndOffset();
+
+        boolean nightMode = SPHelper.getInstance().isNightMode();
+        int textColorRes = nightMode ? R.color.nightModeTextColor : R.color.dayModeTextColor;
+        fontColor = MyApplication.getGlobalContext().getResources().getColor(textColorRes);
+        int backgroundColorRes = nightMode ? R.color.nightModeBackgroundColor : R.color.dayModeBackgroundColor;
+        backgroundColor = MyApplication.getGlobalContext().getResources().getColor(backgroundColorRes);
     }
 
     public int getRowStartOffset() {
@@ -200,6 +215,22 @@ public class PageInfo implements Serializable{
 
     public Book getBook() {
         return book;
+    }
+
+    public int getFontColor() {
+        return fontColor;
+    }
+
+    public void setFontColor(int fontColor) {
+        this.fontColor = fontColor;
+    }
+
+    public int getBackgroundColor() {
+        return backgroundColor;
+    }
+
+    public void setBackgroundColor(int backgroundColor) {
+        this.backgroundColor = backgroundColor;
     }
 
     public interface ReadCallback{

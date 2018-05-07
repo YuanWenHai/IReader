@@ -18,4 +18,17 @@
     <color name="nightModeTextColor">#E0E0E0</color>
     <color name="materialRed">#E53935</color>
     <color name="blueTranslucent">#801E88E5</color>
+
+    <!--day theme-->
+    <color name="dayThemeFontColor">#424242</color>
+    <color name="dayThemeBackgroundColor">#FCECEF</color>
+    <color name="dayThemeWidgetColor">#90CAF9</color>
+    <color name="dayThemeSheetColor">#2196F3</color>
+    <color name="dayThemeToolbarColor">#1E88E5</color>
+    <!--night theme-->
+    <color name="nightThemeFontColor">#E0E0E0</color>
+    <color name="nightThemeBackgroundColor">#424242</color>
+    <color name="nightThemeWidgetColor">#757575</color>
+    <color name="nightThemeSheetColor">#555555</color>
+    <color name="nightThemeToolbarColor">#424242</color>
 </resources>

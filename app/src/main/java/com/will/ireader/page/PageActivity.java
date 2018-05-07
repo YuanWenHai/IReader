@@ -7,6 +7,7 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.widget.CardView;
@@ -22,9 +23,9 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.will.ireader.R;
+import com.will.ireader.view.pageview.PageTheme;
 import com.will.ireader.view.pageview.PageView;
 import com.will.ireader.base.BaseActivity;
-import com.will.ireader.bean.Book;
 import com.will.ireader.chapter.ChapterActivity;
 import com.will.ireader.common.SPHelper;
 
@@ -46,16 +47,31 @@ public class PageActivity extends BaseActivity implements Animation.AnimationLis
     private int originPosition = -1;
     private boolean originMode;
     private boolean isNightMode = originMode = SPHelper.getInstance().isNightMode();
+    private PageTheme currentTheme = PageTheme.DAY_THEME;
+
     @Override
     protected void onCreate( Bundle savedInstanceState) {
         setTheme(isNightMode ? R.style.AppNightTheme : R.style.AppDayTheme);
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.reading_activity_layout);
+        initializeView();
+        iniBottomSheetMenu();
+        final PageTheme theme = SPHelper.getInstance().isNightMode() ? PageTheme.NIGHT_THEME : PageTheme.DAY_THEME;
+        setTheme(theme);
+        currentTheme = theme;
+    }
 
+    private void initializeView(){
         PageInfo pageInfo = (PageInfo) getIntent().getSerializableExtra(PageInfo.PAGE_INFO);
         pageView = findViewById(R.id.reading_activity_view);
         pageView.setPageInfo(pageInfo);
+        pageView.setOnMenuClickListener(new PageView.OnMenuClickListener() {
+            @Override
+            public void onOptionMenuClick() {
+                changeActionState();
+            }
+        });
 
         actionBar = findViewById(R.id.reading_activity_action_bar);
         statusBar = findViewById(R.id.reading_activity_status_bar);
@@ -71,10 +87,7 @@ public class PageActivity extends BaseActivity implements Animation.AnimationLis
         });
 
         pageView.setSystemUiVisibility(View.INVISIBLE);
-
-        iniBottomSheetMenu();
     }
-
     @Override
     protected void onPause() {
         super.onPause();
@@ -162,7 +175,7 @@ public class PageActivity extends BaseActivity implements Animation.AnimationLis
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.reading_menu,menu);
         //setNightMode(SPHelper.getInstance().isNightMode());
-        iniTheme();
+        setupThemeIcon();
         return true;
     }
 
@@ -170,7 +183,10 @@ public class PageActivity extends BaseActivity implements Animation.AnimationLis
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
             case R.id.page_menu_night_mode:
-                setNightMode(!SPHelper.getInstance().isNightMode());
+                PageTheme toTheme = PageTheme.DAY_THEME.equals(currentTheme) ? PageTheme.NIGHT_THEME : PageTheme.DAY_THEME;
+                setTheme(currentTheme,toTheme);
+                currentTheme = toTheme;
+                SPHelper.getInstance().setNightMode(toTheme.equals(PageTheme.NIGHT_THEME));
                 break;
             case R.id.page_menu_chapter:
                 final Intent intent = new Intent(this, ChapterActivity.class);
@@ -194,12 +210,8 @@ public class PageActivity extends BaseActivity implements Animation.AnimationLis
         return true;
     }
 
-    private void iniTheme(){
-        if(isNightMode){
-            toolbar.getMenu().getItem(0).setIcon(R.drawable.ic_brightness_6_white_24dp);
-        }else{
-            toolbar.getMenu().getItem(0).setIcon(R.drawable.ic_brightness_7_white_24dp);
-        }
+    private void setupThemeIcon(){
+        toolbar.getMenu().getItem(0).setIcon(currentTheme.getThemeIconRes());
     }
     private static final String FONT_STR = "当前字号：";
     private FloatingActionButton increaseFont;
@@ -208,49 +220,46 @@ public class PageActivity extends BaseActivity implements Animation.AnimationLis
     private SeekBar progressBar;
     private CardView bottomSheet;
 
-    private  void setNightMode(boolean which){
-        if(which){
-            //change toolbar
-            toolbar.getMenu().getItem(0).setIcon(R.drawable.ic_brightness_6_white_24dp);
-            //mPageFactory.setNightMode(true);
-            animateViewColorChanging(getResources().getColor(R.color.colorPrimary),
-                    getResources().getColor(R.color.nightColorPrimary),300,toolbar);
-            animateViewColorChanging(getResources().getColor(R.color.colorPrimaryDark),
-                    getResources().getColor(R.color.nightColorPrimaryDark),300,statusBar);
-            //change bottom sheet
-            increaseFont.setBackgroundTintList(getResources().getColorStateList(R.color.nightColorPrimaryLight));
-            decreaseFont.setBackgroundTintList(getResources().getColorStateList(R.color.nightColorPrimaryLight));
-            divider.setBackgroundColor(getResources().getColor(R.color.nightColorPrimaryLight));
-            bottomSheet.setCardBackgroundColor(getResources().getColor(R.color.nightColorPrimary));
-            changeSeekbarColor(progressBar,getResources().getColor(R.color.nightColorPrimaryLight));
 
-            SPHelper.getInstance().setNightMode(true);
-        }else{
-            toolbar.getMenu().getItem(0).setIcon(R.drawable.ic_brightness_7_white_24dp);
-            //mPageFactory.setNightMode(false);
-            animateViewColorChanging(getResources().getColor(R.color.nightColorPrimary),
-                    getResources().getColor(R.color.colorPrimary),300,toolbar);
-            animateViewColorChanging(getResources().getColor(R.color.nightColorPrimaryDark),
-                    getResources().getColor(R.color.colorPrimaryDark),300,statusBar);
-            //as above
-            increaseFont.setBackgroundTintList(getResources().getColorStateList(R.color.colorPrimaryLight));
-            decreaseFont.setBackgroundTintList(getResources().getColorStateList(R.color.colorPrimaryLight));
-            divider.setBackgroundColor(getResources().getColor(R.color.colorPrimaryLight));
-            bottomSheet.setCardBackgroundColor(getResources().getColor(R.color.colorPrimary));
-            changeSeekbarColor(progressBar,getResources().getColor(R.color.colorPrimaryLight));
-
-            SPHelper.getInstance().setNightMode(false);
-        }
+    private void setTheme(PageTheme theme){
+        setTheme(null,theme);
     }
-    private void animateViewColorChanging(int fromColor, int toColor, int duration, final View... views){
-        ValueAnimator animator = ValueAnimator.ofObject(new ArgbEvaluator(),fromColor,toColor);
+    private void setTheme(@Nullable PageTheme fromTheme, PageTheme toTheme){
+        if(toTheme.equals(fromTheme)){
+            return;
+        }
+        if(toolbar.getMenu().size() > 0){
+            toolbar.getMenu().getItem(0).setIcon(toTheme.getThemeIconRes());
+        }
+        if(fromTheme == null){
+            pageView.setPageTheme(toTheme);
+        }else{
+            changeViewThemeWithAnimation(fromTheme, toTheme,300,toolbar,pageView);
+        }
+        //change bottom sheet
+        //increaseFont.setBackgroundTintList(getResources().getColorStateList(toTheme.getWidgetColor()));
+        //decreaseFont.setBackgroundTintList(getResources().getColorStateList(toTheme.getWidgetColor()));
+        divider.setBackgroundColor(toTheme.getWidgetColor());
+        bottomSheet.setCardBackgroundColor(toTheme.getSheetColor());
+        changeSeekbarColor(progressBar,toTheme.getWidgetColor());
+    }
+
+    private void changeViewThemeWithAnimation(final PageTheme fromTheme, final PageTheme toTheme, int duration, final Toolbar toolbar, final PageView pageView){
+        ValueAnimator animator = ValueAnimator.ofInt(0,1);
         animator.setDuration(duration);
+        final ArgbEvaluator evaluator = new ArgbEvaluator();
         animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
-                for(View view : views){
-                    view.setBackgroundColor((int)animation.getAnimatedValue());
-                }
+                float fraction = animation.getAnimatedFraction();
+                int toolbarBackgroundColor = (int) evaluator.evaluate(fraction,fromTheme.getToolbarColor(),toTheme.getToolbarColor());
+                toolbar.setBackgroundColor(toolbarBackgroundColor);
+
+                int pageViewBackgroundColor = (int) evaluator.evaluate(fraction,fromTheme.getBackgroundColor(),toTheme.getBackgroundColor());
+                pageView.setBackgroundColor(pageViewBackgroundColor);
+
+                int pageViewFontColor = (int) evaluator.evaluate(fraction,fromTheme.getFontColor(),toTheme.getFontColor());
+                pageView.setFontColor(pageViewFontColor);
             }
         });
         animator.start();
@@ -315,8 +324,7 @@ public class PageActivity extends BaseActivity implements Animation.AnimationLis
         changeSeekbarColor(progressBar,getResources().getColor(isNightMode? R.color.nightColorPrimaryLight : R.color.colorPrimaryLight));
     }
 
-    public void changeSeekbarColor(SeekBar s,int color)
-    {
+    private void changeSeekbarColor(SeekBar s,int color) {
         PorterDuff.Mode mMode = PorterDuff.Mode.SRC_ATOP;
 
         LayerDrawable layerDrawable = (LayerDrawable) s.getProgressDrawable();
