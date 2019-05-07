@@ -10,7 +10,6 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -21,8 +20,6 @@ import com.will.ireader.bean.Book;
 import com.will.ireader.common.SPHelper;
 import com.will.ireader.common.Util;
 import com.will.ireader.db.DBHelper;
-import com.will.ireader.page.PageActivity;
-import com.will.ireader.page.PageInfo;
 
 import java.io.File;
 import java.util.List;
@@ -55,7 +52,8 @@ public class MainActivity extends BaseActivity {
         mAdapter.setOnClickCallback(new BookListAdapter.ClickCallback() {
             @Override
             public void onClick(final Book book) {
-                final PageInfo info = new PageInfo(book);
+
+               /* final PageInfo info = new PageInfo(book);
                 info.prepare(new PageInfo.ReadCallback() {
                     @Override
                     public void onStart() {
@@ -65,10 +63,10 @@ public class MainActivity extends BaseActivity {
                     @Override
                     public void onSuccess() {
                         Intent intent = new Intent(MainActivity.this,PageActivity.class);
-                       /* if(book.getEncoding() == null){
+                       *//* if(book.getEncoding() == null){
                             book.setEncoding(Util.getEncoding(book));
                             DBHelper.getInstance().updateBook(book);
-                        }*/
+                        }*//*
                         intent.putExtra(PageInfo.PAGE_INFO,info);
                         startActivityForResult(intent,RESTART_REQUEST);
                     }
@@ -78,7 +76,7 @@ public class MainActivity extends BaseActivity {
 
                     }
                 });
-
+*/
             }
             @Override
             public void onLongClick() {
