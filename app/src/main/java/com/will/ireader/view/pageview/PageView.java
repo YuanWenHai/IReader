@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewConfiguration;
 
 import com.will.ireader.page.PageInfo;
+import com.will.ireader.printer.Page;
 
 /**
  * 一个用于展示书籍阅读界面的自定义View.<br/>

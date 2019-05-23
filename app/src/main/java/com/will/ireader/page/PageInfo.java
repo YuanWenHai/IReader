@@ -14,9 +14,11 @@ import com.will.ireader.view.pageview.PageTheme;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Serializable;
 
 /**
@@ -115,7 +117,7 @@ public class PageInfo implements Serializable{
         BufferedReader br;
         try{
             StringBuilder sb = new StringBuilder();
-            br = new BufferedReader(new FileReader(new File(book.getPath())));
+            br = new BufferedReader(new InputStreamReader(new FileInputStream(book.getPath()),"gbk"));
 
             String line;
             while ((line = br.readLine()) != null){
