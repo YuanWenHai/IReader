@@ -63,6 +63,7 @@ public class SPHelper {
         bookmarkEditor.clear().apply();
     }
 
+
     public String getBookEncoding(Book book){
         return config.getString(book.getPath(),"");
     }
