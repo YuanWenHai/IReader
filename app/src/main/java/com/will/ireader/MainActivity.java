@@ -21,8 +21,7 @@ import com.will.ireader.bean.Book;
 import com.will.ireader.common.SPHelper;
 import com.will.ireader.common.Util;
 import com.will.ireader.db.DBHelper;
-import com.will.ireader.page.PageActivity;
-import com.will.ireader.page.PageInfo;
+import com.will.ireader.printer.Printer;
 
 import java.io.File;
 import java.util.List;
@@ -53,10 +52,14 @@ public class MainActivity extends BaseActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         mAdapter = new BookListAdapter(this);
+        com.will.ireader.printer.Book b = new com.will.ireader.printer.Book("test.txt","/storage/emulated/0/test.txt");
+        Printer printer = new Printer(b);
         mAdapter.setOnClickCallback(new BookListAdapter.ClickCallback() {
             @Override
             public void onClick(final Book book) {
-                book.setEncoding("gbk");
+
+                Log.e("test",printer.printLineBackward(50));
+               /* book.setEncoding("gbk");
 
                 final PageInfo info = new PageInfo(book);
                 info.prepare(new PageInfo.ReadCallback() {
@@ -81,7 +84,7 @@ public class MainActivity extends BaseActivity {
                     public void onBookInvalid() {
 
                     }
-                });
+                });*/
             }
             @Override
             public void onLongClick() {

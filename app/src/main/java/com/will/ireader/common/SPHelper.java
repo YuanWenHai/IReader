@@ -46,11 +46,11 @@ public class SPHelper {
     }
 
 
-    public void setBookmarkStart(String bookName,int position){
-        bookmarkEditor.putInt(bookName+"start",position).apply();
+    public void setBookmarkStart(String bookIdentifier,int position){
+        bookmarkEditor.putInt(bookIdentifier+"start",position).apply();
     }
-    public int getBookmarkStart(String bookName){
-        return bookmark.getInt(bookName+"start",0);
+    public int getBookmarkStart(String bookIdentifier){
+        return bookmark.getInt(bookIdentifier+"start",0);
     }
     public void setBookmarkNextStart(String bookName, int position){
         bookmarkEditor.putInt(bookName+"next_start",position).apply();
@@ -64,11 +64,11 @@ public class SPHelper {
     }
 
 
-    public String getBookEncoding(Book book){
-        return config.getString(book.getPath(),"");
+    public String getBookCharset(String bookIdentifier,String defaultValue){
+        return config.getString(bookIdentifier,defaultValue);
     }
-    public void setBookEncoding(Book book,String encoding){
-        configEditor.putString(book.getPath(),encoding).apply();
+    public void setBookCharset(String bookIdentifier, String encoding){
+        configEditor.putString(bookIdentifier,encoding).apply();
     }
     public void deleteBookMark(String bookName){
         bookmarkEditor.remove(bookName).apply();
