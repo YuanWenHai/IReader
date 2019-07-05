@@ -16,11 +16,13 @@
             android:name="com.will.ireader.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
+                <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
         <activity android:name="com.will.ireader.page.PageActivity"/>
         <activity android:name="com.will.ireader.chapter.ChapterActivity"/>
+        <activity android:name=".printer.PageActivity1"/>
     </application>
 
 </manifest>

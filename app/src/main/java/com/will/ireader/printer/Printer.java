@@ -1,5 +1,6 @@
 package com.will.ireader.printer;
 
+import android.graphics.Paint;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -23,8 +24,8 @@ public class Printer {
 
 
     @Nullable
-    public String printLineBackward(int textCount){
-        if(startPos == book.bytes().capacity()-1){
+    public String printLineForward(int targetWidth, Paint paint){
+        if(startPos >= book.bytes().capacity()-1){
             return null;
         }
 
@@ -32,7 +33,7 @@ public class Printer {
         byte bytes[];
         String content = "";
         for(;;){
-            if(book.bytes().get(lineEnd) == 10 || lineEnd == book.bytes().capacity()-1){
+            if((lineEnd != startPos && book.bytes().get(lineEnd) == 10) || lineEnd == book.bytes().capacity()-1){
                 int length = lineEnd - startPos;
                 bytes = new byte[length];
                 for(int i=0;i<length;i++){
@@ -43,10 +44,29 @@ public class Printer {
             }
             lineEnd++;
         }
+
+
+
         try{
             String paragraph = new String(bytes,Charset.forName(book.getCharset()));
-            textCount = Math.min(textCount,paragraph.length());
-            content = paragraph.substring(0,textCount);
+            if(paint.measureText(paragraph) <= targetWidth){
+                return paragraph;
+            }
+
+
+            int textCount = 1;
+            for(;;){
+                if(textCount == paragraph.length()){
+                    break;
+                }
+                float length = paint.measureText(paragraph,0,textCount);
+                if(length > targetWidth){
+                    textCount--;
+                    content = paragraph.substring(0,textCount);
+                    break;
+                }
+                textCount++;
+            }
             int returnedIndex = paragraph.substring(textCount).getBytes(book.getCharset()).length;
             startPos -= returnedIndex;
         }catch (UnsupportedEncodingException u){
@@ -57,15 +77,15 @@ public class Printer {
     }
 
     @Nullable
-    public String printLineForward(int textCount){
-        if(startPos == 0){
+    public String printLineBackward(int textCount){
+        if(startPos <= 0){
             return null;
         }
         int lineEnd = startPos;
         byte bytes[];
         String content = "";
         for(;;){
-            if((book.bytes().get(lineEnd) == 10 && lineEnd != startPos-1) || startPos == 0){
+            if((book.bytes().get(lineEnd) == 10 && lineEnd != startPos) || startPos == 0){
                 int length = startPos - lineEnd;
                 bytes = new byte[length];
                 for(int i=0;i<length;i++){

@@ -21,6 +21,7 @@ import com.will.ireader.bean.Book;
 import com.will.ireader.common.SPHelper;
 import com.will.ireader.common.Util;
 import com.will.ireader.db.DBHelper;
+import com.will.ireader.printer.PageActivity1;
 import com.will.ireader.printer.Printer;
 
 import java.io.File;
@@ -58,7 +59,8 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onClick(final Book book) {
 
-                Log.e("test",printer.printLineBackward(50));
+                //Log.e("test",printer.printLineForward(50));
+                startActivity(new Intent(MainActivity.this, PageActivity1.class));
                /* book.setEncoding("gbk");
 
                 final PageInfo info = new PageInfo(book);
