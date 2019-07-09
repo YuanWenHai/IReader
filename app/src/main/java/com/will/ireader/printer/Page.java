@@ -5,6 +5,8 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 
 import com.will.ireader.common.Util;
@@ -14,14 +16,12 @@ import com.will.ireader.common.Util;
  */
 public class Page extends View {
 
-    private String[] lines;
-    private int lineCount = 0;
-    private int rowCount = 0;
-    private int availableWidth;
+    private String[] pageContent;
+    private int contentWidth;
+    private int contentHeight;
 
     private PageConfig mConfig = new PageConfig();
     private Paint paint;
-
     private Printer printer;
 
     public Page(Context context) {
@@ -42,7 +42,7 @@ public class Page extends View {
     }
 
     private void initialize() {
-        com.will.ireader.printer.Book b = new com.will.ireader.printer.Book("test.txt","/storage/emulated/0/test.txt");
+        Book b = new Book("test.txt","/storage/emulated/0/test.txt");
         printer = new Printer(b);
 
 
@@ -56,17 +56,35 @@ public class Page extends View {
     }
 
     private void initializePageSpec(){
-        rowCount = (getMeasuredHeight() - px(mConfig.getContentPaddingVertical() * 2 + mConfig.getInfoPaddingVertical() * 2 + mConfig.getInfoFontSize()))/ (px(mConfig.getFontSize() + mConfig.getLineSpacing()));
-        availableWidth = getMeasuredWidth() - px(mConfig.getContentPaddingHorizontal() * 2);
+        contentWidth = getMeasuredWidth() - px(mConfig.getContentPaddingHorizontal() * 2);
+        contentHeight = getMeasuredHeight() - px(mConfig.getInfoPanelHeight() + 2*mConfig.getContentPaddingVertical());
+    }
+
+    private void pageDown() {
+        pageContent = printer.printPageForward(contentWidth,contentHeight,paint);
+        invalidate();
+    }
+    private void pageUp() {
+        pageContent = printer.printPageBackward(contentWidth,contentHeight,paint);
+        invalidate();
+    }
+
+    private void drawPage(Canvas canvas){
+        if(pageContent == null){
+            pageDown();
+        }
+        for(int i = 0; i<pageContent.length; i++){
+            canvas.drawText(pageContent[i],px(mConfig.getContentPaddingHorizontal()),px(mConfig.getFontSize()) * (i+1),paint);
+        }
+        // TODO: 2019/7/8  implement info panel.
+
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        for(int i=1;i<=rowCount;i++){
-            canvas.drawText(printer.printLineForward(availableWidth,paint),px(mConfig.getContentPaddingHorizontal()),px(mConfig.getFontSize()) * i,paint);
-        }
-
+       drawPage(canvas);
     }
+
 
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
@@ -74,14 +92,23 @@ public class Page extends View {
         initializePageSpec();
     }
 
+    private float pressX = 0;
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if(event.getAction() == MotionEvent.ACTION_DOWN){
+            pressX = event.getX();
 
-
-
-
-
-
-
-
+            return true;
+        }else if(event.getAction() == MotionEvent.ACTION_UP){
+            if(pressX < getMeasuredWidth()/2){
+                pageUp();
+            }else{
+                pageDown();
+            }
+            return true;
+        }
+        return super.onTouchEvent(event);
+    }
 
 
 
@@ -92,9 +119,18 @@ public class Page extends View {
         private int contentPaddingVertical = 2;
         private int lineSpacing = 1;
 
-        private int infoFontSize = 4;
+        private int infoPanelHeight = 16;
+        private int infoFontSize = 14;
         private int infoPaddingHorizontal = 2;
         private int infoPaddingVertical = 2;
+
+        public int getInfoPanelHeight() {
+            return infoPanelHeight;
+        }
+
+        public void setInfoPanelHeight(int infoPanelHeight) {
+            this.infoPanelHeight = infoPanelHeight;
+        }
 
         public int getFontSize() {
             return fontSize;

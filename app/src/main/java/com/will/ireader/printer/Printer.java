@@ -23,17 +23,33 @@ public class Printer {
 
 
 
-    @Nullable
-    public String printLineForward(int targetWidth, Paint paint){
-        if(startPos >= book.bytes().capacity()-1){
-            return null;
-        }
 
+    public String[] printPageForward(int availableWidth,int availableHeight,Paint paint){
+        int rowCount = (int)(availableHeight/paint.getTextSize());
+        String[] pageContent = new String[rowCount];
+        for(int i=0;i<pageContent.length;i++){
+            pageContent[i] = printLineForward(availableWidth,paint);
+        }
+        return  pageContent;
+    }
+    public String[] printPageBackward(int availableWidth,int availableHeight,Paint paint){
+        movePosToPreviousPage(availableWidth,availableHeight,paint);
+        return printPageForward(availableWidth,availableHeight,paint);
+    }
+
+
+
+
+
+    private String printLineForward(int availableWidth, Paint paint){
+        if(startPos >= book.bytes().capacity()-1){
+            return "";
+        }
         int lineEnd = startPos;
-        byte bytes[];
-        String content = "";
+        byte[] bytes;
+        String line = "";
         for(;;){
-            if((lineEnd != startPos && book.bytes().get(lineEnd) == 10) || lineEnd == book.bytes().capacity()-1){
+                if((lineEnd != startPos && book.bytes().get(lineEnd) == 10) || lineEnd == book.bytes().capacity()-1){
                 int length = lineEnd - startPos;
                 bytes = new byte[length];
                 for(int i=0;i<length;i++){
@@ -44,70 +60,58 @@ public class Printer {
             }
             lineEnd++;
         }
-
-
-
         try{
             String paragraph = new String(bytes,Charset.forName(book.getCharset()));
-            if(paint.measureText(paragraph) <= targetWidth){
-                return paragraph;
+            int textCount = paint.breakText(paragraph,true,availableWidth,null);
+            line = paragraph.substring(0,textCount);
+            String remain = paragraph.substring(textCount);
+            if(remain.length() > 0){
+                int returnedIndex = remain.getBytes(book.getCharset()).length;
+                startPos -= returnedIndex;
             }
-
-
-            int textCount = 1;
-            for(;;){
-                if(textCount == paragraph.length()){
-                    break;
-                }
-                float length = paint.measureText(paragraph,0,textCount);
-                if(length > targetWidth){
-                    textCount--;
-                    content = paragraph.substring(0,textCount);
-                    break;
-                }
-                textCount++;
-            }
-            int returnedIndex = paragraph.substring(textCount).getBytes(book.getCharset()).length;
-            startPos -= returnedIndex;
         }catch (UnsupportedEncodingException u){
             u.printStackTrace();
             Log.e("error on printer","unsupported charset!");
         }
-        return content;
+        return line;
     }
 
-    @Nullable
-    public String printLineBackward(int textCount){
-        if(startPos <= 0){
-            return null;
-        }
-        int lineEnd = startPos;
-        byte bytes[];
-        String content = "";
-        for(;;){
-            if((book.bytes().get(lineEnd) == 10 && lineEnd != startPos) || startPos == 0){
-                int length = startPos - lineEnd;
-                bytes = new byte[length];
-                for(int i=0;i<length;i++){
-                    bytes[i] = book.bytes().get(lineEnd+i);
+
+    // TODO: 2019/7/9  考虑不足一页时的问题
+    private void movePosToPreviousPage(int availableWidth,int availableHeight,Paint paint){
+
+        int rowCount = (int)(availableHeight/paint.getTextSize());
+        for(int a=0;a<rowCount;a++){
+            int lineEnd = startPos;
+            byte[] bytes;
+            for(;;){
+                if((book.bytes().get(lineEnd) == 10 && lineEnd != startPos) || startPos == 0){
+                    int length = startPos - lineEnd;
+                    bytes = new byte[length];
+                    for(int i=0;i<length;i++){
+                        bytes[i] = book.bytes().get(lineEnd+i);
+                    }
+                    startPos = lineEnd;
+                    break;
                 }
-                startPos = lineEnd;
-                break;
+                lineEnd--;
             }
-            lineEnd--;
+            try{
+                String paragraph = new String(bytes,book.getCharset());
+                int textCount = paint.breakText(paragraph,true,availableWidth,null);
+                String line = paragraph.substring(0,textCount);
+                String remain = paragraph.substring(textCount);
+                if(remain.length() > 0){
+                    startPos += remain.getBytes(book.getCharset()).length;
+                }
+            }catch (UnsupportedEncodingException u){
+                u.printStackTrace();
+                Log.e("error on printer","unsupported charset");
+            }
         }
 
-        try{
-            String paragraph = new String(bytes,book.getCharset());
-            textCount = Math.min(textCount,paragraph.length());
-            content = paragraph.substring(textCount);
-            int returnedIndex = paragraph.substring(0,textCount).getBytes(book.getCharset()).length;
-            startPos += returnedIndex;
-        }catch (UnsupportedEncodingException u){
-            u.printStackTrace();
-            Log.e("error on printer","unsupported charset");
-        }
-        return content;
+
+
     }
 
 
