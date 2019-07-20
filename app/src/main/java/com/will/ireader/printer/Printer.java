@@ -17,7 +17,6 @@ public class Printer {
     private int currentPos;
 
     private int pageStartPos;
-    private long endPos;
 
 
     public Printer(Book book) {
@@ -38,7 +37,7 @@ public class Printer {
         return  pageContent;
     }
     public String[] printPageBackward(int availableWidth,int availableHeight,Paint paint){
-        movePosToPreviousPage(availableWidth,availableHeight,paint);
+        currentPos = findPreviousPageStart(availableWidth,availableHeight,paint);
         return printPageForward(availableWidth,availableHeight,paint);
     }
 
@@ -84,30 +83,30 @@ public class Printer {
     }
 
 
-    private void movePosToPreviousPage(int availableWidth,int availableHeight,Paint paint){
-        if(currentPos <= 0){
-            currentPos = 0;
-            return;
+    private int findPreviousPageStart(int availableWidth, int availableHeight, Paint paint){
+        if(pageStartPos <= 0){
+            return 0 ;
         }
+        int targetPos = pageStartPos;
 
         int rowCount = (int)(availableHeight/paint.getTextSize());
         ArrayList<String> lines = new ArrayList<>();
         while(lines.size() < rowCount){
 
-            int pEnd = currentPos;
+            int pEnd = targetPos;
             while (pEnd > 0){
-                if((book.bytes().get(pEnd) == 10 && currentPos-pEnd !=1)  || currentPos == 0){
+                if((book.bytes().get(pEnd) == 10 && targetPos-pEnd !=1)  || targetPos == 0){
                     pEnd += 1;//指针后移一位，不将上一段换行符加入本段
                     break;
                 }
                 pEnd--;
             }
-            int length = currentPos - pEnd;
+            int length = targetPos - pEnd;
             byte[] bytes = new byte[length];
             for(int i=0;i<length;i++){
                 bytes[i] = book.bytes().get(pEnd+i);
             }
-            currentPos = pEnd;
+            targetPos = pEnd;
 
 
             try{
@@ -119,12 +118,21 @@ public class Printer {
                     paragraph = paragraph.substring(lineCount);
                 }
                 lines.addAll(0,temp);
-                if(lines.size() > rowCount){
-
+                //段落中未显示的行，将回退
+                List<String> temp2 = new ArrayList<>();
+                StringBuilder remain = new StringBuilder();
+                //因为是上翻页，故从段首起将多余的行移除回退
+                while (lines.size() > rowCount){
+                    temp2.add(lines.remove(0));
                 }
 
-                if(paragraph.length() > 0){
-                    currentPos += paragraph.getBytes(book.getCharset()).length;
+                for (String s: temp2){
+                    remain.append(s);
+                }
+
+                String remainStr = remain.toString();
+                if(remainStr.length() > 0){
+                    targetPos += remainStr.getBytes(book.getCharset()).length;
                 }
 
             }catch (UnsupportedEncodingException u){
@@ -132,6 +140,18 @@ public class Printer {
                 Log.e("error on printer","unsupported charset");
             }
         }
+        return targetPos;
+    }
+
+
+    /**
+     * return current book progress in percentage
+     * @return percentage
+     */
+    public float getProgress(){
+        float c = (float) currentPos;
+        float f = (float) book.bytes().capacity();
+        return (c/f)*100;
     }
 
 

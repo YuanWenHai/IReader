@@ -1,15 +1,21 @@
 package com.will.ireader.printer;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.os.BatteryManager;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
 import com.will.ireader.common.Util;
+
+import java.util.Calendar;
+import java.util.Locale;
 
 /**
  * created  by will on 2019/5/11 16:54
@@ -72,10 +78,27 @@ public class Page extends View {
     private void drawPage(Canvas canvas){
         if(pageContent == null){
             pageDown();
+            return;
         }
         for(int i = 0; i<pageContent.length; i++){
             canvas.drawText(pageContent[i],px(mConfig.getContentPaddingHorizontal()),px(mConfig.getFontSize()) * (i+1),paint);
         }
+
+
+        //info panel
+        String timeInfo = Calendar.getInstance().getTime().toString();
+
+        IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        Intent batteryStatus = getContext().registerReceiver(null, filter);
+        int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+        int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+        int batteryPct = level /scale;
+        String butteryInfo = batteryPct+"%";
+
+        String progressInfo = String.format(Locale.CHINA,"%.2f",printer.getProgress());
+
+
+
         // TODO: 2019/7/8  implement info panel.
 
     }
