@@ -12,12 +12,17 @@ import com.will.ireader.base.BaseActivity;
  */
 public class PageActivity1 extends BaseActivity {
 
+    public static String PARAM_BOOK = "book";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setTheme(R.style.AppNightTheme);
-        setContentView(new Page(this));
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
+        setContentView(R.layout.activity_page_1);
+
+        Book book = (Book) getIntent().getSerializableExtra(PageActivity1.PARAM_BOOK);
+        Page page = findViewById(R.id.page_view);
+        page.setPrinter(new Printer(book));
     }
 }

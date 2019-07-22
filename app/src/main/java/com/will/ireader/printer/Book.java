@@ -8,6 +8,7 @@ import com.will.ireader.common.SPHelper;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.io.Serializable;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
@@ -15,15 +16,17 @@ import java.nio.charset.Charset;
 /**
  * created  by will on 2019/6/6 16:25
  */
-public class Book {
+public class Book implements Serializable {
 
 
     private String path;
     private String name;
-    private int startPosition;
 
+
+    private int startPosition = -1;
+    private int byteLength = -1;
     private RandomAccessFile randomFile;
-    private MappedByteBuffer mappedFile;
+    private static MappedByteBuffer mappedFile;
     private String charset;
 
 
@@ -32,9 +35,16 @@ public class Book {
     public Book(String name,String path){
         this.name = name;
         this.path = path;
+    }
+
+
+    public void initialize(){
         startPosition = SPHelper.getInstance().getBookmarkStart(path);
         charset = SPHelper.getInstance().getBookCharset(path,"gbk");
+        Book.mappedFile = load();
+        byteLength = Book.mappedFile.capacity();
     }
+
 
     public String getName() {
         return name;
@@ -49,9 +59,17 @@ public class Book {
         this.path = path;
     }
 
+    public int getByteLength() {
+        check();
+        return byteLength;
+    }
 
+    public void setByteLength(int byteLength) {
+        this.byteLength = byteLength;
+    }
 
     public String getCharset() {
+        check();
         return charset;
     }
     public void setCharset(String charset) {
@@ -61,6 +79,7 @@ public class Book {
 
 
     public int getStartPosition() {
+        check();
         return startPosition;
     }
     public void setStartPosition(int startPosition) {
@@ -70,10 +89,8 @@ public class Book {
 
 
     public MappedByteBuffer bytes() {
-        if(mappedFile == null){
-            load();
-        }
-        return mappedFile;
+       check();
+       return Book.mappedFile;
     }
 
     private MappedByteBuffer load(long start, long end){
@@ -100,6 +117,7 @@ public class Book {
     }
 
     public void close() {
+        Book.mappedFile = null;
         if(randomFile == null ){
             return;
         }
@@ -112,5 +130,10 @@ public class Book {
         }
     }
 
+    private void check(){
+        if(startPosition == -1 ||byteLength == -1 || charset == null || Book.mappedFile == null){
+            throw (new RuntimeException("you must call initialize() before you invoke this method"));
+        }
+    }
 
 }

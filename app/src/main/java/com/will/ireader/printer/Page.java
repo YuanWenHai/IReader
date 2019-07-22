@@ -8,7 +8,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.BatteryManager;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -26,7 +25,7 @@ public class Page extends View {
     private int contentWidth;
     private int contentHeight;
 
-    private PageConfig mConfig = new PageConfig();
+    private PageConfig mConfig;
     private Paint paint;
     private Printer printer;
 
@@ -37,6 +36,7 @@ public class Page extends View {
 
     public Page(Context context, AttributeSet attrs) {
         super(context, attrs);
+        initialize();
     }
 
     public Page(Context context, AttributeSet attrs, int defStyleAttr) {
@@ -47,11 +47,24 @@ public class Page extends View {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 
+    public void start(){
+
+    }
+    public void refresh(){
+        if(mConfig == null || printer == null){
+            throw new RuntimeException("before print page,you must pass PageConfig & Printer to this view");
+        }
+
+    }
+
+
+    public void setPrinter(Printer printer){
+        this.printer = printer;
+        invalidate();
+    }
+
     private void initialize() {
-        Book b = new Book("test.txt","/storage/emulated/0/test.txt");
-        printer = new Printer(b);
-
-
+        this.mConfig = new PageConfig();
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setColor(Color.BLACK);
         paint.setTextSize(px(mConfig.getFontSize()));
@@ -61,7 +74,17 @@ public class Page extends View {
         return Util.getPXFromDP(dp);
     }
 
-    private void initializePageSpec(){
+    public void applyConfigChange(){
+        calculatePageSpec();
+        pageContent = printer.reprintCurrentPage(contentWidth,contentHeight,paint);
+        invalidate();
+    }
+    // TODO: 2019/7/22 需要解决屏幕可用尺寸变化时的重绘问题
+
+    /**
+     * 计算可用尺寸
+     */
+    private void calculatePageSpec(){
         contentWidth = getMeasuredWidth() - px(mConfig.getContentPaddingHorizontal() * 2);
         contentHeight = getMeasuredHeight() - px(mConfig.getInfoPanelHeight() + 2*mConfig.getContentPaddingVertical());
     }
@@ -76,6 +99,9 @@ public class Page extends View {
     }
 
     private void drawPage(Canvas canvas){
+        if(printer == null){
+            return;
+        }
         if(pageContent == null){
             pageDown();
             return;
@@ -105,14 +131,14 @@ public class Page extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
-       drawPage(canvas);
+        drawPage(canvas);
     }
 
 
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
-        initializePageSpec();
+        calculatePageSpec();
     }
 
     private float pressX = 0;
@@ -146,6 +172,10 @@ public class Page extends View {
         private int infoFontSize = 14;
         private int infoPaddingHorizontal = 2;
         private int infoPaddingVertical = 2;
+
+
+
+
 
         public int getInfoPanelHeight() {
             return infoPanelHeight;

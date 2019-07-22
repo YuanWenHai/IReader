@@ -40,6 +40,15 @@ public class Printer {
         currentPos = findPreviousPageStart(availableWidth,availableHeight,paint);
         return printPageForward(availableWidth,availableHeight,paint);
     }
+    public String[] reprintCurrentPage(int availableWidth,int availableHeight,Paint paint){
+        currentPos = pageStartPos;
+        int rowCount = (int)(availableHeight/paint.getTextSize());
+        String[] pageContent = new String[rowCount];
+        for(int i=0;i<pageContent.length;i++){
+            pageContent[i] = printLineForward(availableWidth,paint);
+        }
+        return  pageContent;
+    }
 
 
 

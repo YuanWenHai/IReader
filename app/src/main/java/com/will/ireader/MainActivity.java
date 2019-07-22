@@ -60,7 +60,11 @@ public class MainActivity extends BaseActivity {
             public void onClick(final Book book) {
 
                 //Log.e("test",printer.printLineForward(50));
-                startActivity(new Intent(MainActivity.this, PageActivity1.class));
+                com.will.ireader.printer.Book book1 = new com.will.ireader.printer.Book(book.getBookName(),book.getPath());
+                book1.initialize();
+                Intent startIntent = new Intent(MainActivity.this, PageActivity1.class);
+                startIntent.putExtra(PageActivity1.PARAM_BOOK,book1);
+                startActivity(startIntent);
                /* book.setEncoding("gbk");
 
                 final PageInfo info = new PageInfo(book);
