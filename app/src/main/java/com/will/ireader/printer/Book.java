@@ -25,8 +25,8 @@ public class Book implements Serializable {
 
     private int startPosition = -1;
     private int byteLength = -1;
-    private RandomAccessFile randomFile;
-    private static MappedByteBuffer mappedFile;
+    private  RandomAccessFile randomFile;
+    private  MappedByteBuffer mappedFile;
     private String charset;
 
 
@@ -41,8 +41,8 @@ public class Book implements Serializable {
     public void initialize(){
         startPosition = SPHelper.getInstance().getBookmarkStart(path);
         charset = SPHelper.getInstance().getBookCharset(path,"gbk");
-        Book.mappedFile = load();
-        byteLength = Book.mappedFile.capacity();
+        mappedFile = load();
+        byteLength = mappedFile.capacity();
     }
 
 
@@ -90,7 +90,7 @@ public class Book implements Serializable {
 
     public MappedByteBuffer bytes() {
        check();
-       return Book.mappedFile;
+       return mappedFile;
     }
 
     private MappedByteBuffer load(long start, long end){
@@ -103,7 +103,7 @@ public class Book implements Serializable {
 
         try {
             randomFile = new RandomAccessFile(file, "r");
-            this.mappedFile = randomFile.getChannel().map(FileChannel.MapMode.READ_ONLY,start,end);
+            mappedFile = randomFile.getChannel().map(FileChannel.MapMode.READ_ONLY,start,end);
         } catch (IOException e) {
             e.printStackTrace();
             Log.e("book","load error");
@@ -117,12 +117,13 @@ public class Book implements Serializable {
     }
 
     public void close() {
-        Book.mappedFile = null;
+        mappedFile = null;
         if(randomFile == null ){
             return;
         }
         try{
             randomFile.close();
+            randomFile = null;
 
         }catch (IOException i){
             i.printStackTrace();
@@ -131,7 +132,7 @@ public class Book implements Serializable {
     }
 
     private void check(){
-        if(startPosition == -1 ||byteLength == -1 || charset == null || Book.mappedFile == null){
+        if(startPosition == -1 ||byteLength == -1 || charset == null || mappedFile == null){
             throw (new RuntimeException("you must call initialize() before you invoke this method"));
         }
     }

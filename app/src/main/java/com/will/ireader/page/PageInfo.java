@@ -133,7 +133,7 @@ public class PageInfo implements Serializable{
     }
 
     private void initParams(){
-        fontSize = SPHelper.getInstance().getFontSize();
+        //fontSize = SPHelper.getInstance().getFontSize();
         fontMaxSize = Util.getPXFromDP(20);
         fontMinSize = Util.getPXFromDP(5);
 

@@ -7,13 +7,16 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.BatteryManager;
+import android.text.format.DateFormat;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.will.ireader.common.SPHelper;
 import com.will.ireader.common.Util;
 
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
 
 /**
@@ -26,17 +29,20 @@ public class Page extends View {
     private int contentHeight;
 
     private PageConfig mConfig;
-    private Paint paint;
+    private Paint contentPaint;
+    private Paint infoPanelPaint;
     private Printer printer;
 
     public Page(Context context) {
         super(context);
         initialize();
+        initContentPaint();
     }
 
     public Page(Context context, AttributeSet attrs) {
         super(context, attrs);
         initialize();
+        initContentPaint();
     }
 
     public Page(Context context, AttributeSet attrs, int defStyleAttr) {
@@ -47,54 +53,51 @@ public class Page extends View {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 
-    public void start(){
-
+    public PageConfig getConfig(){
+        return mConfig;
     }
-    public void refresh(){
-        if(mConfig == null || printer == null){
-            throw new RuntimeException("before print page,you must pass PageConfig & Printer to this view");
-        }
-
-    }
-
 
     public void setPrinter(Printer printer){
         this.printer = printer;
         invalidate();
     }
 
-    private void initialize() {
-        this.mConfig = new PageConfig();
-        paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        paint.setColor(Color.BLACK);
-        paint.setTextSize(px(mConfig.getFontSize()));
+    private void initialize(){
+        mConfig = PageConfig.getInstance();
+        infoPanelPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        infoPanelPaint.setColor(mConfig.getInfoColor());
+        infoPanelPaint.setTextSize(px(mConfig.getInfoFontSize()));
+    }
+    private void initContentPaint() {
+        contentPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        contentPaint.setColor(Color.BLACK);
+        contentPaint.setTextSize(px(mConfig.getFontSize()));
     }
 
     private int px(int dp){
         return Util.getPXFromDP(dp);
     }
 
-    public void applyConfigChange(){
-        calculatePageSpec();
-        pageContent = printer.reprintCurrentPage(contentWidth,contentHeight,paint);
+    public void refresh(){
+        initContentPaint();
+        pageContent = printer.reprintCurrentPage(contentWidth,contentHeight, contentPaint);
         invalidate();
     }
-    // TODO: 2019/7/22 需要解决屏幕可用尺寸变化时的重绘问题
 
     /**
-     * 计算可用尺寸
+     * calculate available spec
      */
     private void calculatePageSpec(){
         contentWidth = getMeasuredWidth() - px(mConfig.getContentPaddingHorizontal() * 2);
-        contentHeight = getMeasuredHeight() - px(mConfig.getInfoPanelHeight() + 2*mConfig.getContentPaddingVertical());
+        contentHeight = getMeasuredHeight() - px(mConfig.getInfoFontSize() + 2*mConfig.getContentPaddingVertical());
     }
 
     private void pageDown() {
-        pageContent = printer.printPageForward(contentWidth,contentHeight,paint);
+        pageContent = printer.printPageForward(contentWidth,contentHeight, contentPaint);
         invalidate();
     }
     private void pageUp() {
-        pageContent = printer.printPageBackward(contentWidth,contentHeight,paint);
+        pageContent = printer.printPageBackward(contentWidth,contentHeight, contentPaint);
         invalidate();
     }
 
@@ -107,25 +110,23 @@ public class Page extends View {
             return;
         }
         for(int i = 0; i<pageContent.length; i++){
-            canvas.drawText(pageContent[i],px(mConfig.getContentPaddingHorizontal()),px(mConfig.getFontSize()) * (i+1),paint);
+            canvas.drawText(pageContent[i],px(mConfig.getContentPaddingHorizontal()),px(mConfig.getFontSize()) * (i+1), contentPaint);
         }
 
 
         //info panel
-        String timeInfo = Calendar.getInstance().getTime().toString();
-
+        String timeInfo = DateFormat.format("HH:mm",Calendar.getInstance().getTimeInMillis()).toString();
         IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         Intent batteryStatus = getContext().registerReceiver(null, filter);
         int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
         int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-        int batteryPct = level /scale;
-        String butteryInfo = batteryPct+"%";
+        String batteryInfo = String.valueOf((level /scale)*100);
+        String progressInfo = String.format(Locale.CHINA,"%.2f%%",printer.getProgress());
 
-        String progressInfo = String.format(Locale.CHINA,"%.2f",printer.getProgress());
-
-
-
-        // TODO: 2019/7/8  implement info panel.
+        int y = getMeasuredHeight()-px(mConfig.getInfoPaddingVertical());
+        canvas.drawText(timeInfo,px(mConfig.getInfoPaddingHorizontal()),y,infoPanelPaint);
+        canvas.drawText(progressInfo,(getMeasuredWidth()-infoPanelPaint.measureText(progressInfo))/2,y,infoPanelPaint);
+        canvas.drawText(batteryInfo,getMeasuredWidth()-infoPanelPaint.measureText(batteryInfo)-mConfig.getInfoPaddingHorizontal(),y,infoPanelPaint);
 
     }
 
@@ -134,10 +135,9 @@ public class Page extends View {
         drawPage(canvas);
     }
 
-
     @Override
-    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         calculatePageSpec();
     }
 
@@ -161,28 +161,41 @@ public class Page extends View {
 
 
 
-    public class PageConfig {
+    public static class PageConfig {
         private int fontSize = 16;
         //private int fontSpacing = 2;
         private int contentPaddingHorizontal = 2;
         private int contentPaddingVertical = 2;
         private int lineSpacing = 1;
 
-        private int infoPanelHeight = 16;
-        private int infoFontSize = 14;
+        private int infoFontSize = 16;
         private int infoPaddingHorizontal = 2;
-        private int infoPaddingVertical = 2;
+        private int infoPaddingVertical = 8;
+        private int infoColor = Color.BLACK;
 
 
-
-
-
-        public int getInfoPanelHeight() {
-            return infoPanelHeight;
+        public int getInfoColor() {
+            return infoColor;
         }
 
-        public void setInfoPanelHeight(int infoPanelHeight) {
-            this.infoPanelHeight = infoPanelHeight;
+        public void setInfoColor(int infoColor) {
+            this.infoColor = infoColor;
+        }
+
+        static PageConfig getInstance(){
+            PageConfig config = new PageConfig();
+            config.setFontSize(SPHelper.getInstance().getFontSize(16));
+            return config;
+        }
+
+
+
+        public int getInfoFontSize() {
+            return infoFontSize;
+        }
+
+        public void setInfoFontSize(int infoFontSize) {
+            this.infoFontSize = infoFontSize;
         }
 
         public int getFontSize() {
@@ -191,6 +204,7 @@ public class Page extends View {
 
         public void setFontSize(int fontSize) {
             this.fontSize = fontSize;
+            SPHelper.getInstance().setFontSize(fontSize);
         }
 
         public int getLineSpacing() {
@@ -242,12 +256,5 @@ public class Page extends View {
             this.infoPaddingVertical = infoPaddingVertical;
         }
 
-        public int getInfoFontSize() {
-            return infoFontSize;
-        }
-
-        public void setInfoFontSize(int infoFontSize) {
-            this.infoFontSize = infoFontSize;
-        }
     }
 }

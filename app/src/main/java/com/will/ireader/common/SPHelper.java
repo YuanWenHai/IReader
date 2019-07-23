@@ -29,8 +29,11 @@ public class SPHelper {
         }
         return instance;
     }
+    public int getFontSize(int fallback){
+        return config.getInt("font_size",fallback);
+    }
     public int getFontSize(){
-        return config.getInt("font_size",Util.getPXFromDP(12));
+        return config.getInt("font_size",16);
     }
     public void setFontSize(int size){
         configEditor.putInt("font_size",size).apply();

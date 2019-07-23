@@ -20,8 +20,8 @@ public class PageActivity1 extends BaseActivity {
         setTheme(R.style.AppNightTheme);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
         setContentView(R.layout.activity_page_1);
-
         Book book = (Book) getIntent().getSerializableExtra(PageActivity1.PARAM_BOOK);
+        book.initialize();
         Page page = findViewById(R.id.page_view);
         page.setPrinter(new Printer(book));
     }

@@ -53,15 +53,11 @@ public class MainActivity extends BaseActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         mAdapter = new BookListAdapter(this);
-        com.will.ireader.printer.Book b = new com.will.ireader.printer.Book("test.txt","/storage/emulated/0/test.txt");
-        Printer printer = new Printer(b);
         mAdapter.setOnClickCallback(new BookListAdapter.ClickCallback() {
             @Override
             public void onClick(final Book book) {
-
                 //Log.e("test",printer.printLineForward(50));
                 com.will.ireader.printer.Book book1 = new com.will.ireader.printer.Book(book.getBookName(),book.getPath());
-                book1.initialize();
                 Intent startIntent = new Intent(MainActivity.this, PageActivity1.class);
                 startIntent.putExtra(PageActivity1.PARAM_BOOK,book1);
                 startActivity(startIntent);
