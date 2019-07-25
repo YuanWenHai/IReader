@@ -49,19 +49,12 @@ public class SPHelper {
     }
 
 
-    public void setBookmarkStart(String bookIdentifier,int position){
-        bookmarkEditor.putInt(bookIdentifier+"start",position).apply();
+    public void setBookmark(String bookIdentifier, int position){
+        bookmarkEditor.putInt(bookIdentifier+"_bookmark",position).apply();
     }
-    public int getBookmarkStart(String bookIdentifier){
-        return bookmark.getInt(bookIdentifier+"start",0);
+    public int getBookmark(String bookIdentifier){
+        return bookmark.getInt(bookIdentifier+"_bookmark",0);
     }
-    public void setBookmarkNextStart(String bookName, int position){
-        bookmarkEditor.putInt(bookName+"next_start",position).apply();
-    }
-    public int getBookmarkNextStart(String bookName){
-        return bookmark.getInt(bookName+"next_start",0);
-    }
-
     public void clearAllBookMarkData(){
         bookmarkEditor.clear().apply();
     }

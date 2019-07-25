@@ -2,8 +2,8 @@ package com.will.ireader;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -179,7 +179,7 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.BookVi
             return "尚未阅读.";
         }
         String name = book.getBookName();
-        int position = SPHelper.getInstance().getBookmarkStart(name);
+        int position = SPHelper.getInstance().getBookmark(name);
         byte[] bytes = new byte[1024];
         String preview = "";
         File file = new File(book.getPath());
@@ -200,7 +200,7 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.BookVi
     private int getProgress(Book book){
         File file = new File(book.getPath());
         if(file.exists() && file.isFile()){
-            int currentPosition = SPHelper.getInstance().getBookmarkStart(book.getBookName());
+            int currentPosition = SPHelper.getInstance().getBookmark(book.getBookName());
             return currentPosition *100/ (int) Math.max(file.length(),1);
         }
         return 0;

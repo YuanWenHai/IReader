@@ -10,13 +10,11 @@ import com.will.ireader.bean.Book;
 import com.will.ireader.common.SPHelper;
 import com.will.ireader.common.TaskManager;
 import com.will.ireader.common.Util;
-import com.will.ireader.view.pageview.PageTheme;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Serializable;
@@ -78,7 +76,7 @@ public class PageInfo implements Serializable{
 
     public void setStartPosition(int startPosition) {
         this.startPosition = startPosition;
-        //SPHelper.getInstance().setBookmarkStart(book.getBookName(),startPosition);
+        //SPHelper.getInstance().setBookmark(book.getBookName(),startPosition);
     }
 
     public int getNextStartPosition() {
@@ -87,7 +85,7 @@ public class PageInfo implements Serializable{
 
     public void setNextStartPosition(int nextStartPosition) {
         this.nextStartPosition = nextStartPosition;
-        //SPHelper.getInstance().setBookmarkStart(book.getBookName(),nextStartPosition);
+        //SPHelper.getInstance().setBookmark(book.getBookName(),nextStartPosition);
     }
 
 
@@ -137,7 +135,7 @@ public class PageInfo implements Serializable{
         fontMaxSize = Util.getPXFromDP(20);
         fontMinSize = Util.getPXFromDP(5);
 
-        startPosition = SPHelper.getInstance().getBookmarkStart(book.getBookName());
+        startPosition = SPHelper.getInstance().getBookmark(book.getBookName());
 
         bottomBarSize = Util.getPXFromDP(11);
         bottomBarFontSize = Util.getPXFromDP(10);

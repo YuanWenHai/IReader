@@ -9,7 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/status_height"
         android:background="?attr/colorPrimaryDark"/>
-    <android.support.v7.widget.Toolbar
+    <androidx.appcompat.widget.Toolbar
         android:id="@+id/chapter_activity_toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"

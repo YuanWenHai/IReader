@@ -3,7 +3,7 @@ package com.will.ireader.view.pageview;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.support.annotation.ColorInt;
+import androidx.annotation.ColorInt;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -11,7 +11,6 @@ import android.view.View;
 import android.view.ViewConfiguration;
 
 import com.will.ireader.page.PageInfo;
-import com.will.ireader.printer.Page;
 
 /**
  * 一个用于展示书籍阅读界面的自定义View.<br/>

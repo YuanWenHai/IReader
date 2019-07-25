@@ -1,6 +1,6 @@
 package com.will.ireader.base;
 
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 
 /**
  * Created by will on 2016/10/29.

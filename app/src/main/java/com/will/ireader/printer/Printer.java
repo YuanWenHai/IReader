@@ -14,14 +14,14 @@ public class Printer {
     private final Book book;
 
     //当下，在文件bytes中的指针位置
-    private int pageEndPos;
-
-    private int pageStartPos;
+    private int currentPos;
+    
+    private int currentPageStartPos;
 
 
     public Printer(Book book) {
         this.book = book;
-        this.pageStartPos = book.getStartPosition();
+        this.currentPos = book.getBookmark();
     }
 
 
@@ -29,21 +29,21 @@ public class Printer {
 
 
     public String[] printPageForward(int availableWidth,int availableHeight,Paint paint){
-        pageStartPos = pageEndPos;
+        currentPageStartPos = currentPos;
         int rowCount = (int)(availableHeight/paint.getTextSize());
         String[] pageContent = new String[rowCount];
         for(int i=0;i<pageContent.length;i++){
             pageContent[i] = printLineForward(availableWidth,paint);
         }
-        book.setStartPosition(pageStartPos);
+        book.setBookmark(currentPos);
         return  pageContent;
     }
     public String[] printPageBackward(int availableWidth,int availableHeight,Paint paint){
-        pageEndPos = findPreviousPageStart(availableWidth,availableHeight,paint);
+        currentPos = findPreviousPageStart(availableWidth,availableHeight,paint);
         return printPageForward(availableWidth,availableHeight,paint);
     }
     public String[] reprintCurrentPage(int availableWidth,int availableHeight,Paint paint){
-        pageEndPos = pageStartPos;
+        currentPos = currentPageStartPos;
         return printPageForward(availableWidth,availableHeight,paint);
     }
 
@@ -52,11 +52,11 @@ public class Printer {
 
 
     private String printLineForward(int availableWidth, Paint paint){
-        if(pageEndPos >= book.bytes().capacity()){
+        if(currentPos >= book.bytes().capacity()){
             return "";
         }
 
-        int pEnd = pageEndPos;
+        int pEnd = currentPos;
         while (pEnd < book.bytes().capacity()){
                 if(book.bytes().get(pEnd) == 0x0a){
                     pEnd += 1; //将换行符(0x0a)一同加入段落,pEnd即currentPos总是指向下一段段首
@@ -64,12 +64,12 @@ public class Printer {
             }
             pEnd++;
         }
-        int length = pEnd - pageEndPos;
+        int length = pEnd - currentPos;
         byte[] bytes = new byte[length];
         for(int i=0;i<length;i++){
-            bytes[i] = book.bytes().get(pageEndPos +i);
+            bytes[i] = book.bytes().get(currentPos +i);
         }
-        pageEndPos = pEnd;
+        currentPos = pEnd;
 
         String line = "";
         try{
@@ -79,7 +79,7 @@ public class Printer {
             String remain = paragraph.substring(textCount);
             if(remain.length() > 0){
                 int returnedIndex = remain.getBytes(book.getCharset()).length;
-                pageEndPos -= returnedIndex;
+                currentPos -= returnedIndex;
             }
         }catch (UnsupportedEncodingException u){
             u.printStackTrace();
@@ -90,10 +90,10 @@ public class Printer {
 
 
     private int findPreviousPageStart(int availableWidth, int availableHeight, Paint paint){
-        if(pageStartPos <= 0){
+        if(currentPageStartPos <= 0){
             return 0 ;
         }
-        int targetPos = pageStartPos;
+        int targetPos = currentPageStartPos;
 
         int rowCount = (int)(availableHeight/paint.getTextSize());
         ArrayList<String> lines = new ArrayList<>();
@@ -155,7 +155,7 @@ public class Printer {
      * @return percentage
      */
     public float getProgress(){
-        float c = (float) pageEndPos;
+        float c = (float) currentPos;
         float f = (float) book.bytes().capacity();
         return (c/f)*100;
     }

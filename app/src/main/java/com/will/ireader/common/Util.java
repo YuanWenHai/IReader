@@ -1,9 +1,8 @@
 package com.will.ireader.common;
 
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.support.annotation.ColorRes;
+import androidx.annotation.ColorRes;
 import android.widget.Toast;
 
 import com.will.ireader.base.MyApplication;

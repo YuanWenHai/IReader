@@ -1,6 +1,5 @@
 package com.will.ireader.printer;
 
-import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.will.ireader.common.SPHelper;
@@ -11,7 +10,6 @@ import java.io.RandomAccessFile;
 import java.io.Serializable;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.charset.Charset;
 
 /**
  * created  by will on 2019/6/6 16:25
@@ -23,7 +21,7 @@ public class Book implements Serializable {
     private String name;
 
 
-    private int startPosition = -1;
+    private int bookmark = -1;
     private int byteLength = -1;
     private  RandomAccessFile randomFile;
     private  MappedByteBuffer mappedFile;
@@ -39,7 +37,7 @@ public class Book implements Serializable {
 
 
     public void initialize(){
-        startPosition = SPHelper.getInstance().getBookmarkStart(path);
+        bookmark = SPHelper.getInstance().getBookmark(path);
         charset = SPHelper.getInstance().getBookCharset(path,"gbk");
         mappedFile = load();
         byteLength = mappedFile.capacity();
@@ -78,13 +76,13 @@ public class Book implements Serializable {
     }
 
 
-    public int getStartPosition() {
+    public int getBookmark() {
         check();
-        return startPosition;
+        return bookmark;
     }
-    public void setStartPosition(int startPosition) {
-        this.startPosition = startPosition;
-        SPHelper.getInstance().setBookmarkStart(getPath(),startPosition);
+    public void setBookmark(int bookmark) {
+        this.bookmark = bookmark;
+        SPHelper.getInstance().setBookmark(path, bookmark);
     }
 
 
@@ -132,7 +130,7 @@ public class Book implements Serializable {
     }
 
     private void check(){
-        if(startPosition == -1 ||byteLength == -1 || charset == null || mappedFile == null){
+        if(bookmark == -1 ||byteLength == -1 || charset == null || mappedFile == null){
             throw (new RuntimeException("you must call initialize() before you invoke this method"));
         }
     }

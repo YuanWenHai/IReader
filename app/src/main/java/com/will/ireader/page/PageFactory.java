@@ -101,8 +101,7 @@ public class PageFactory {
     private void openBook(final Book book){
         this.book = book;
         encoding = book.getEncoding();
-        begin = spHelper.getBookmarkStart(book.getBookName());
-        end = spHelper.getBookmarkNextStart(book.getBookName());
+        begin = spHelper.getBookmark(book.getBookName());
         File file = new File(book.getPath());
         fileLength = (int) file.length();
             try {
@@ -324,8 +323,7 @@ private void pageDown(){
         printPage();
     }
     public void saveBookmark(){
-        SPHelper.getInstance().setBookmarkNextStart(book.getBookName(),begin);
-        SPHelper.getInstance().setBookmarkStart(book.getBookName(),begin);
+        SPHelper.getInstance().setBookmark(book.getBookName(),begin);
     }
     public void setFontSize(int size){
         if(size < 15){
