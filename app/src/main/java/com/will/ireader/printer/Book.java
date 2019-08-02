@@ -1,8 +1,15 @@
 package com.will.ireader.printer;
 
+import android.content.Context;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+import androidx.room.Entity;
+import androidx.room.Ignore;
+import androidx.room.PrimaryKey;
+
 import com.will.ireader.common.SPHelper;
+import com.will.ireader.worker.AppWorker;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,18 +21,25 @@ import java.nio.channels.FileChannel;
 /**
  * created  by will on 2019/6/6 16:25
  */
+@Entity
 public class Book implements Serializable {
 
 
+
+    @NonNull
+    @PrimaryKey
     private String path;
     private String name;
 
 
     private int bookmark = -1;
     private int byteLength = -1;
+    private String charset = "gbk";
+
+    @Ignore
     private  RandomAccessFile randomFile;
+    @Ignore
     private  MappedByteBuffer mappedFile;
-    private String charset;
 
 
 
@@ -37,10 +51,11 @@ public class Book implements Serializable {
 
 
     public void initialize(){
-        bookmark = SPHelper.getInstance().getBookmark(path);
-        charset = SPHelper.getInstance().getBookCharset(path,"gbk");
         mappedFile = load();
         byteLength = mappedFile.capacity();
+    }
+    public void initialize(BookInitializeListener listener){
+
     }
 
 
@@ -133,6 +148,14 @@ public class Book implements Serializable {
         if(bookmark == -1 ||byteLength == -1 || charset == null || mappedFile == null){
             throw (new RuntimeException("you must call initialize() before you invoke this method"));
         }
+    }
+
+    public void save(Context context){
+        AppWorker.getInstance().getHandler().post(() -> AppDatabase.getInstance(context).bookDao().updateBook(this));
+    }
+
+    interface BookInitializeListener{
+        void onFinish();
     }
 
 }

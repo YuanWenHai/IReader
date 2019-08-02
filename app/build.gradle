@@ -25,7 +25,7 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'androidx.appcompat:appcompat:1.0.2'
     implementation 'com.google.android.material:material:1.0.0'
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation 'com.crystal:crystalrangeseekbar:1.1.1'
@@ -35,4 +35,7 @@ dependencies {
     annotationProcessor "androidx.room:room-compiler:2.1.0"
 
     implementation project(':filesearcher')
+
+    implementation 'com.google.code.gson:gson:2.8.5'
+
 }

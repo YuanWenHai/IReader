@@ -2,10 +2,16 @@ package com.will.ireader.printer;
 
 import android.os.Bundle;
 import androidx.annotation.Nullable;
+
+import android.util.Log;
 import android.view.View;
 
+import com.google.gson.Gson;
 import com.will.ireader.R;
 import com.will.ireader.base.BaseActivity;
+import com.will.ireader.worker.AppWorker;
+
+import java.util.List;
 
 /**
  * created  by will on 2019/7/5 15:43
@@ -24,5 +30,9 @@ public class PageActivity1 extends BaseActivity {
         book.initialize();
         Page page = findViewById(R.id.page_view);
         page.setPrinter(new Printer(book));
+        AppWorker.getInstance().getHandler().post(() -> {
+            List<Book> books = AppDatabase.getInstance(this).bookDao().getAllBooks();
+            Log.e("book",new Gson().toJson(books.get(0)));
+        });
     }
 }
