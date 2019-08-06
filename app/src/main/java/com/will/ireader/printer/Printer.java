@@ -4,6 +4,8 @@ import android.graphics.Paint;
 import android.util.Log;
 
 
+import com.will.ireader.base.MyApplication;
+
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -21,7 +23,7 @@ public class Printer {
 
     public Printer(Book book) {
         this.book = book;
-        this.currentPos = book.getBookmark();
+        this.currentPos = book.getCurrentPosition();
     }
 
 
@@ -35,7 +37,8 @@ public class Printer {
         for(int i=0;i<pageContent.length;i++){
             pageContent[i] = printLineForward(availableWidth,paint);
         }
-        book.setBookmark(currentPos);
+        book.setCurrentPosition(currentPageStartPos);
+        book.update(MyApplication.getGlobalContext());
         return  pageContent;
     }
     public String[] printPageBackward(int availableWidth,int availableHeight,Paint paint){

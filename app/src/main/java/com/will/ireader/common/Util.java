@@ -65,4 +65,8 @@ public class Util {
         dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         return dialog;
     }
+
+    public static String getFileSizeInUnit(long fileLength){
+        String[] units = new String[]{"gb","mb","kb"};
+    }
 }

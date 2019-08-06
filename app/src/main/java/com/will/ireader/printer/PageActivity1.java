@@ -9,6 +9,7 @@ import android.view.View;
 import com.google.gson.Gson;
 import com.will.ireader.R;
 import com.will.ireader.base.BaseActivity;
+import com.will.ireader.book_list.BookListActivity;
 import com.will.ireader.worker.AppWorker;
 
 import java.util.List;
@@ -23,16 +24,12 @@ public class PageActivity1 extends BaseActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setTheme(R.style.AppNightTheme);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
         setContentView(R.layout.activity_page_1);
-        Book book = (Book) getIntent().getSerializableExtra(PageActivity1.PARAM_BOOK);
+        Book book = BookListActivity.CURRENT_BOOK;
+        //Log.e("book",new Gson().toJson(book));
         book.initialize();
         Page page = findViewById(R.id.page_view);
         page.setPrinter(new Printer(book));
-        AppWorker.getInstance().getHandler().post(() -> {
-            List<Book> books = AppDatabase.getInstance(this).bookDao().getAllBooks();
-            Log.e("book",new Gson().toJson(books.get(0)));
-        });
     }
 }

@@ -6,5 +6,5 @@
     <dimen name="status_height">24dp</dimen>
     <dimen name="book_item_image_height">150dp</dimen>
     <dimen name="book_item_image_width">150dp</dimen>
-    <dimen name="book_item_height">165dp</dimen>
+    <dimen name="book_item_height">70dp</dimen>
 </resources>

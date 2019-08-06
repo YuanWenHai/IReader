@@ -2,6 +2,7 @@ package com.will.ireader.printer;
 
 import android.content.Context;
 
+import androidx.annotation.Nullable;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
@@ -18,6 +19,9 @@ public abstract class AppDatabase extends RoomDatabase {
     private static AppDatabase mInstance;
 
     public static AppDatabase getInstance(Context context){
+        if(context == null){
+            return mInstance;
+        }
         if(mInstance == null){
             synchronized (AppDatabase.class){
                 if(mInstance == null){
@@ -27,6 +31,7 @@ public abstract class AppDatabase extends RoomDatabase {
         }
         return mInstance;
     }
+
     public static void destroy(){
         AppDatabase.mInstance = null;
     }

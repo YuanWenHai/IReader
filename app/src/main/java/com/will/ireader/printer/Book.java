@@ -26,21 +26,22 @@ public class Book implements Serializable {
 
 
 
-    @NonNull
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
+    private int id;
+
+
     private String path;
     private String name;
 
-
-    private int bookmark = -1;
-    private int byteLength = -1;
+    private int currentPosition = 0;
     private String charset = "gbk";
 
     @Ignore
     private  RandomAccessFile randomFile;
     @Ignore
     private  MappedByteBuffer mappedFile;
-
+    @Ignore
+    private int byteLength = -1;
 
 
 
@@ -55,7 +56,10 @@ public class Book implements Serializable {
         byteLength = mappedFile.capacity();
     }
     public void initialize(BookInitializeListener listener){
-
+        AppWorker.getInstance().runOnWorkerThread(() -> {
+           initialize();
+           AppWorker.getInstance().runOnMainThread(listener::onFinish);
+        });
     }
 
 
@@ -72,8 +76,18 @@ public class Book implements Serializable {
         this.path = path;
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public int getByteLength() {
-        check();
+        if(byteLength == -1){
+            throw (new RuntimeException("you must call initialize() before you invoke this method"));
+        }
         return byteLength;
     }
 
@@ -82,27 +96,25 @@ public class Book implements Serializable {
     }
 
     public String getCharset() {
-        check();
         return charset;
     }
     public void setCharset(String charset) {
         this.charset = charset;
-        SPHelper.getInstance().setBookCharset(getPath(),charset);
     }
 
 
-    public int getBookmark() {
-        check();
-        return bookmark;
+    public int getCurrentPosition() {
+        return currentPosition;
     }
-    public void setBookmark(int bookmark) {
-        this.bookmark = bookmark;
-        SPHelper.getInstance().setBookmark(path, bookmark);
+    public void setCurrentPosition(int currentPosition) {
+        this.currentPosition = currentPosition;
     }
 
 
     public MappedByteBuffer bytes() {
-       check();
+       if(mappedFile == null){
+           throw (new RuntimeException("you must call initialize() before you invoke this method"));
+       }
        return mappedFile;
     }
 
@@ -144,14 +156,10 @@ public class Book implements Serializable {
         }
     }
 
-    private void check(){
-        if(bookmark == -1 ||byteLength == -1 || charset == null || mappedFile == null){
-            throw (new RuntimeException("you must call initialize() before you invoke this method"));
-        }
-    }
 
-    public void save(Context context){
-        AppWorker.getInstance().getHandler().post(() -> AppDatabase.getInstance(context).bookDao().updateBook(this));
+    public void update(Context context){
+        AppWorker.getInstance().runOnWorkerThread(() -> AppDatabase.getInstance(context).bookDao().updateBook(this));
+        Log.e("current pos",currentPosition+"");
     }
 
     interface BookInitializeListener{

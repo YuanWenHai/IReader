@@ -28,6 +28,6 @@ public interface BookDao {
     void deleteBook(Book book);
 
     @Query("SELECT * FROM  book WHERE path LIKE :path")
-    void getBook(String path);
+    Book getBook(String path);
 
 }
