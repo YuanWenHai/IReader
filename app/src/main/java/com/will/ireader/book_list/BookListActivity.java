@@ -3,7 +3,6 @@ package com.will.ireader.book_list;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toolbar;
@@ -13,7 +12,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.will.filesearcher.FileSearcher;
-import com.will.ireader.MainActivity;
 import com.will.ireader.R;
 import com.will.ireader.base.BaseActivity;
 import com.will.ireader.printer.AppDatabase;
@@ -78,7 +76,7 @@ public class BookListActivity extends BaseActivity {
                         .search((List<File> files) -> {
                             List<Book> books = new ArrayList<>();
                             for(File f: files){
-                                books.add(new Book(f.getName(),f.getPath()));
+                                books.add(new Book(f.getName(),f.getPath(),f.length()));
                             }
                             AppWorker.getInstance().runOnWorkerThread(() -> AppDatabase.getInstance(this).bookDao().addBook(books.toArray(new Book[]{})));
                         });

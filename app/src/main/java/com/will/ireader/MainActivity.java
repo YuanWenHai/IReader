@@ -5,15 +5,15 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import androidx.appcompat.app.AlertDialog;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.appcompat.widget.Toolbar;
-
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.will.filesearcher.FileSearcher;
 import com.will.ireader.base.BaseActivity;
@@ -21,7 +21,6 @@ import com.will.ireader.bean.Book;
 import com.will.ireader.common.SPHelper;
 import com.will.ireader.common.Util;
 import com.will.ireader.db.DBHelper;
-import com.will.ireader.printer.PageActivity1;
 
 import java.io.File;
 import java.util.List;
@@ -56,10 +55,7 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onClick(final Book book) {
                 //Log.e("test",printer.printLineForward(50));
-                com.will.ireader.printer.Book book1 = new com.will.ireader.printer.Book(book.getBookName(),book.getPath());
-                Intent startIntent = new Intent(MainActivity.this, PageActivity1.class);
-                startIntent.putExtra(PageActivity1.PARAM_BOOK,book1);
-                startActivity(startIntent);
+
                /* book.setEncoding("gbk");
 
                 final PageInfo info = new PageInfo(book);

@@ -3,12 +3,10 @@ package com.will.ireader.printer;
 import android.content.Context;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
-import com.will.ireader.common.SPHelper;
 import com.will.ireader.worker.AppWorker;
 
 import java.io.File;
@@ -32,6 +30,7 @@ public class Book implements Serializable {
 
     private String path;
     private String name;
+    private long size;
 
     private int currentPosition = 0;
     private String charset = "gbk";
@@ -45,9 +44,10 @@ public class Book implements Serializable {
 
 
 
-    public Book(String name,String path){
+    public Book(String name,String path,long size){
         this.name = name;
         this.path = path;
+        this.size = size;
     }
 
 
@@ -74,6 +74,14 @@ public class Book implements Serializable {
     }
     public void setPath(String path) {
         this.path = path;
+    }
+
+    public long getSize() {
+        return size;
+    }
+
+    public void setSize(long size) {
+        this.size = size;
     }
 
     public int getId() {

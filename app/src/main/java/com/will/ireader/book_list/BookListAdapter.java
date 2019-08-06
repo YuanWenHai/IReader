@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.will.ireader.R;
+import com.will.ireader.common.Util;
 import com.will.ireader.printer.Book;
 
 import java.util.ArrayList;
@@ -52,6 +53,7 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.BookLi
         Book book = books.get(position);
         holder.name.setText(book.getName());
         holder.path.setText(book.getPath());
+        holder.size.setText(Util.getFileSizeInUnit(book.getSize()));
     }
 
     @Override
@@ -63,6 +65,7 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.BookLi
     class BookListViewHolder extends RecyclerView.ViewHolder{
         TextView name;
         TextView path;
+        TextView size;
         BookListViewHolder(@NonNull View itemView) {
             super(itemView);
             itemView.setOnClickListener((View v) -> {
@@ -72,6 +75,7 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.BookLi
             });
             name = itemView.findViewById(R.id.item_book_list_title);
             path = itemView.findViewById(R.id.item_book_list_path);
+            size = itemView.findViewById(R.id.item_book_list_size);
         }
     }
 

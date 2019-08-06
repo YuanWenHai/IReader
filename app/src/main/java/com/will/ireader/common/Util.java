@@ -2,8 +2,9 @@ package com.will.ireader.common;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import androidx.annotation.ColorRes;
 import android.widget.Toast;
+
+import androidx.annotation.ColorRes;
 
 import com.will.ireader.base.MyApplication;
 import com.will.ireader.bean.Book;
@@ -15,6 +16,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Locale;
 
 /**
  * Created by will on 2016/10/29.
@@ -67,6 +69,10 @@ public class Util {
     }
 
     public static String getFileSizeInUnit(long fileLength){
-        String[] units = new String[]{"gb","mb","kb"};
+        String[] units = new String[]{"b","kb","mb","gb"};
+        double c = Math.log10(1024);
+        int unitIndex = (int) (Math.log10(fileLength)/c);
+        double value = fileLength/Math.pow(1024,unitIndex);
+        return String.format(Locale.CHINESE,"%.2f"+units[unitIndex],value);
     }
 }
