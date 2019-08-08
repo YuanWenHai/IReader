@@ -69,4 +69,14 @@ public class SPHelper {
     public void deleteBookMark(String bookName){
         bookmarkEditor.remove(bookName).apply();
     }
+
+
+    public static final String DISPLAY_TYPE_NORMAL = "normal";
+    public static final String DISPLAY_TYPE_NOTCHED = "notched";
+    public void setDisplayType(String type){
+        configEditor.putString("display_type",type);
+    }
+    public String getDisplayType(){
+        return config.getString("display_type",null);
+    }
 }

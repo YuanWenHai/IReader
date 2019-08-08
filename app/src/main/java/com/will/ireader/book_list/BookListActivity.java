@@ -2,9 +2,12 @@ package com.will.ireader.book_list;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toolbar;
 
 import androidx.annotation.Nullable;
@@ -14,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.will.filesearcher.FileSearcher;
 import com.will.ireader.R;
 import com.will.ireader.base.BaseActivity;
+import com.will.ireader.common.SPHelper;
 import com.will.ireader.printer.AppDatabase;
 import com.will.ireader.printer.Book;
 import com.will.ireader.printer.PageActivity1;
@@ -96,6 +100,38 @@ public class BookListActivity extends BaseActivity {
         }
 
         return true;
+    }
+
+    private void detectDisplayType(){
+
+        if(SPHelper.getInstance().getDisplayType() == null){
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P){
+                getWindow().getDecorView().addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+                    @Override
+                    public void onViewAttachedToWindow(View v) {
+                        boolean which = v.getRootWindowInsets().getDisplayCutout() == null;
+                        SPHelper.getInstance().setDisplayType(which ? SPHelper.DISPLAY_TYPE_NORMAL : SPHelper.DISPLAY_TYPE_NOTCHED);
+                        v.removeOnAttachStateChangeListener(this);
+                    }
+
+                    @Override
+                    public void onViewDetachedFromWindow(View v) {
+
+                    }
+                });
+            }else{
+                int statusBarHeight = 0;
+                int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
+                if (resourceId > 0) {
+                    statusBarHeight = getResources().getDimensionPixelSize(resourceId);
+                }
+
+            }
+
+
+        }
+
+
     }
 
 
