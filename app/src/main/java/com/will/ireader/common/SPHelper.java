@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.will.ireader.base.MyApplication;
-import com.will.ireader.bean.Book;
 
 /**
  * Created by will on 2016/11/3.
@@ -29,17 +28,6 @@ public class SPHelper {
         }
         return instance;
     }
-    public int getFontSize(int fallback){
-        return config.getInt("font_size",fallback);
-    }
-    public int getFontSize(){
-        return config.getInt("font_size",16);
-    }
-    public void setFontSize(int size){
-        configEditor.putInt("font_size",size).apply();
-    }
-
-
 
     public void setNightMode(boolean which){
         configEditor.putBoolean("night_mode",which).apply();
@@ -49,32 +37,10 @@ public class SPHelper {
     }
 
 
-    public void setBookmark(String bookIdentifier, int position){
-        bookmarkEditor.putInt(bookIdentifier+"_bookmark",position).apply();
-    }
-    public int getBookmark(String bookIdentifier){
-        return bookmark.getInt(bookIdentifier+"_bookmark",0);
-    }
-    public void clearAllBookMarkData(){
-        bookmarkEditor.clear().apply();
-    }
-
-
-    public String getBookCharset(String bookIdentifier,String defaultValue){
-        return config.getString(bookIdentifier,defaultValue);
-    }
-    public void setBookCharset(String bookIdentifier, String encoding){
-        configEditor.putString(bookIdentifier,encoding).apply();
-    }
-    public void deleteBookMark(String bookName){
-        bookmarkEditor.remove(bookName).apply();
-    }
-
-
     public static final String DISPLAY_TYPE_NORMAL = "normal";
     public static final String DISPLAY_TYPE_NOTCHED = "notched";
     public void setDisplayType(String type){
-        configEditor.putString("display_type",type);
+        configEditor.putString("display_type",type).apply();
     }
     public String getDisplayType(){
         return config.getString("display_type",null);

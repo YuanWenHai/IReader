@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.will.ireader.R;
 import com.will.ireader.common.Util;
-import com.will.ireader.printer.Book;
+import com.will.ireader.book.Book;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +35,11 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.BookLi
     public void setBooks(List<Book> books){
         this.books.clear();
         this.books.addAll(books);
+        notifyDataSetChanged();
+    }
+
+    public void addBooks(List<Book> list){
+        this.books.addAll(list);
         notifyDataSetChanged();
     }
 

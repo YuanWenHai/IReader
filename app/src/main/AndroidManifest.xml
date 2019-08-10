@@ -12,15 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppDayTheme"
         android:largeHeap="true">
-        <activity
-            android:name="com.will.ireader.MainActivity">
-
-        </activity>
-        <activity android:name="com.will.ireader.page.PageActivity"/>
-        <activity android:name="com.will.ireader.chapter.ChapterActivity"/>
-        <activity android:name=".printer.PageActivity1"
+        <activity android:name=".page.PageActivity"
             android:theme="@style/PageView"/>
-        <activity android:name=".book_list.BookListActivity">
+        <activity android:name=".book_list.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <action android:name="android.intent.action.VIEW"/>
