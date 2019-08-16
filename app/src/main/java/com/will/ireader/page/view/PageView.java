@@ -33,6 +33,7 @@ public class PageView extends View {
     private Paint infoPanelPaint;
     private Printer printer;
     private MenuClickListener listener;
+    private boolean isMenuShowing;
 
     public PageView(Context context) {
         super(context);
@@ -153,13 +154,19 @@ public class PageView extends View {
 
             return true;
         }else if(event.getAction() == MotionEvent.ACTION_UP){
+            if(isMenuShowing && listener != null){
+                isMenuShowing = false;
+                listener.onClick(isMenuShowing);
+                return true;
+            }
             if(pressX < getMeasuredWidth()/3){
                 pageUp();
             }else if(pressX > (getMeasuredWidth()/3)*2){
                 pageDown();
             }else{
                 if(listener != null){
-                    listener.onClick();
+                    isMenuShowing = !isMenuShowing;
+                    listener.onClick(isMenuShowing);
                 }
             }
             return true;
@@ -264,6 +271,6 @@ public class PageView extends View {
         }
     }
     public interface MenuClickListener{
-        void onClick();
+        void onClick(boolean showMenu);
     }
 }

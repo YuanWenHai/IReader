@@ -36,14 +36,12 @@ public class PageActivity extends BaseActivity {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         }
         setContentView(R.layout.activity_page);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setActionBar(toolbar);
         PageView page = findViewById(R.id.page_view);
         Book book = MainActivity.CURRENT_BOOK;
         book.initialize();
         page.setPrinter(new Printer(book));
-        page.setOnMenuClickListener(()->
-            toolbar.animate().translationY(toolbar.getTranslationY() == 0 ? -toolbar.getHeight() : 0)
+        page.setOnMenuClickListener(isShowing -> {}
+            //toolbar.animate().translationY(isShowing ? 0 : -toolbar.getHeight())
         );
     }
 
