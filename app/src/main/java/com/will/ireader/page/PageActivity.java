@@ -1,6 +1,8 @@
 package com.will.ireader.page;
 
 import android.os.Bundle;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Toolbar;
 
@@ -21,6 +23,7 @@ public class PageActivity extends BaseActivity {
 
     public static String PARAM_BOOK = "book";
 
+    private View menu;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,16 +35,17 @@ public class PageActivity extends BaseActivity {
 
     private void initialize(){
         String displayType = SPHelper.getInstance().getDisplayType();
-        if(displayType.equals(SPHelper.DISPLAY_TYPE_NOTCHED)){
+        if(displayType != null && displayType.equals(SPHelper.DISPLAY_TYPE_NOTCHED)){
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         }
         setContentView(R.layout.activity_page);
+        menu = findViewById(R.id.page_menu);
+        menu.setAlpha(0);
         PageView page = findViewById(R.id.page_view);
         Book book = MainActivity.CURRENT_BOOK;
         book.initialize();
         page.setPrinter(new Printer(book));
-        page.setOnMenuClickListener(isShowing -> {}
-            //toolbar.animate().translationY(isShowing ? 0 : -toolbar.getHeight())
+        page.setOnMenuClickListener(isShowing -> menu.animate().alpha(isShowing ? 1 : 0)
         );
     }
 
